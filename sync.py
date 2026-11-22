@@ -12,3 +12,7 @@ s=s.replace('user-scalable=no">','user-scalable=no,viewport-fit=cover">').replac
 assert 'googleapis' not in s
 open('/home/claude/app/www/index.html','w').write(s)
 print('synced',len(s)//1024,'KB')
+import shutil
+shutil.copy('/home/claude/app/node_modules/pixi.js/dist/pixi.min.js','/home/claude/app/www/pixi.min.js')
+shutil.copy('/home/claude/app/node_modules/pixi.js/dist/pixi.min.js','/home/claude/game/pixi.min.js')
+print('pixi copied')
