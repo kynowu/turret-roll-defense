@@ -826,7 +826,7 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
   <div class="box"><h3>Modifications</h3><div class="sub">Turrets can roll with a mod. Rarer mods hit much harder. Luck raises the chance.</div><div class="stats">${MODS.map(m=>`<span style="color:${m.c}">${m.n} (x${m.m} damage)</span><span>${S.rb>=m.rb?'✓':m.rb+' rebirths'}</span>`).join('')}</div></div>`}
  if(tab==='worlds'){$('#stitle').textContent='Worlds';const top=Math.max(S.unl+1,4);for(let i=0;i<=top;i++){const w=world(i),un=i<=S.unl,cur=i===S.world;
   h+=`<div class="box world ${cur?'cur':''}"><div class="wsw" style="background:${w.sw}"></div><div><h3>${w.n}</h3><div class="sub">${un?`x${fmt(w.mo)} money · x${fmt(w.hp)} zombie HP · x${w.lu.toFixed(1)} luck${S.bestW[i]?` · best wave ${S.bestW[i]}`:''}`:`Needs ${w.rb} rebirth${w.rb>1?'s':''} and wave ${w.wv} in ${world(i-1).n}`}</div></div>${cur?'<span class="sub">Here</span>':un?`<button class="btn go" data-act="travel" data-w="${i}">Go</button>`:'<span class="sub">🔒</span>'}</div>`}
-  h+=`<div class="sub">Travelling resets your wave, turrets and money, like a rebirth (without the bonus). Every world after Void keeps going: Void II, III, IV…</div>`}
+  h+=`<div class="sub">Travelling keeps your turrets, money and Apex. Only the wave starts over at 1. Every world after Void keeps going: Void II, III, IV…</div>`}
  if(tab==='gems'){$('#stitle').textContent='Gem shop';const it=(name,desc,cost,act,done,extra='')=>`<div class="box"><div class="line"><div><h3>${name}</h3><div class="sub">${desc}</div></div>${done?'<span class="sub" style="color:#b5f05a">Owned</span>':`<button class="btn gemb" data-act="${act}" ${S.gems<cost?'disabled':''}><span class="gemi"></span>${cost}</button>`}</div>${extra}</div>`;
   h+=`<div class="sub">Earn gems from boss waves (wave 10 = 1, wave 20 = 2…). Gems are never reset.</div>`;
   h+=it('Auto Roll','Keeps rolling until it finds a turret you can afford.',3,'g_ar',S.g.ar);
@@ -877,7 +877,7 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='sk'){const c=skCost(k);if(S.money>=c){S.money-=c;S.sk[k]=(S.sk[k]||0)+1}}
  if(a==='skmax'){let n=0;while(S.money>=skCost(k)&&n<1000){S.money-=skCost(k);S.sk[k]++;n++}}
  if(a==='rb')ask('Rebirth?','Your wave, turrets and money reset. You keep skills and gems.','Rebirth',doRebirth);
- if(a==='travel'){const w=+t.dataset.w;ask(`Travel to ${world(w).n}?`,'This resets your wave, turrets and money.','Travel',()=>{resetRun(w);closeSheet()})}
+ if(a==='travel'){const w=+t.dataset.w;ask(`Travel to ${world(w).n}?`,'You keep your turrets, money and Apex. The wave starts over at 1.','Travel',()=>{travelTo(w);closeSheet()})}
  if(a==='g_mr')gem(S.g.mr?90:30,()=>{S.g.mr=(S.g.mr||0)+1});if(a==='g_lp3')gem(12,()=>S.lp3=(S.lp3||0)+1800);if(a==='g_mp3')gem(12,()=>S.mp3=(S.mp3||0)+1800);if(a==='g_af')gem(40,()=>S.g.af=1);if(a==='g_o24')gem(350,()=>S.g.o24=1);if(a==='g_kit')gem(1000,()=>S.g.kit=1);if(a==='g_aa')gem(1500,()=>{S.g.aa=1;S.autoAsc=1});
  if(a==='g_ar')gem(3,()=>S.g.ar=1);if(a==='g_ab')gem(5,()=>S.g.ab=1);if(a==='g_flt')gem(4,()=>S.g.flt=1);if(a==='g_arb')gem(15,()=>S.g.arb=1);
  if(a==='g_spd')gem(SPEEDC[S.g.spd+1],()=>{S.g.spd++;S.spdSel=S.g.spd});if(a==='g_lp')gem(2,()=>S.lp+=300);if(a==='g_mp')gem(2,()=>S.mp+=300);if(a==='g_guar')gem(4,()=>S.guar++);if(a==='g_off')gem(3*(S.g.off+1),()=>S.g.off++);
@@ -896,6 +896,7 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='imp'){try{const o=JSON.parse(decodeURIComponent(escape(atob($('#savebox').value.trim()))));if(typeof o.money!=='number')throw 0;S=Object.assign(fresh(),o);afterLoad();toast('Save loaded');closeSheet()}catch(err){toast('That code did not work')}return}
  if(a==='wipe'){ask('Delete everything?','All progress, gems and skills will be gone for good.','Delete',()=>{S=fresh();afterLoad();save();closeSheet();toast('Fresh start')});return}
  save();renderAutos();renderCard();render()});
+function travelTo(w){S.world=w;S.wave=1;if(!S.bestW[w])S.bestW[w]=0;G.z=[];G.p=[];G.ac=[];G.fx=[];G.corpses=[];G.state='break';G.bt=1;RT.forEach(r=>{r.bt=null});RTA.forEach(r=>{r.bt=null});rebuild();save();toast(`Travelled to ${world(w).n}`)}
 function resetRun(w){S.money=50;S.wave=1;S.world=w;S.slots=startSlots();S.extra=[];if(S.g.kit)for(let k=0;k<4;k++)S.slots[k]={t:k,m:-1,lv:MAXLV,dp:0};S.roll=null;replaceMode=false;sel=-1;RT.forEach((r,i)=>{r.cd=0;r.bt=null;r.a=i<8?0:Math.PI});G.z=[];G.p=[];G.fx=[];G.corpses=[];G.state='break';G.bt=1;G.hp=G.maxhp;if(!S.bestW[w])S.bestW[w]=0;rebuild();renderCard();save()}
 function doRebirth(){const c=rbCost();if(S.money<c)return;S.rb++;resetRun(S.world);const m=MODS.find(m=>m.rb===S.rb);toast(`Rebirth ${S.rb}! +25% money, +10% luck`);if(m)toast(`${m.n} mods can now appear!`);checkUnlock()}
 
