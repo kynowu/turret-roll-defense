@@ -83,7 +83,7 @@ button:focus-visible{outline:3px solid var(--good);outline-offset:2px}
 #tabs .dot::after{content:'';position:absolute;top:-2px;right:-6px;width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 6px var(--bad)}
 .flash{animation:fl .8s ease-out}
 @keyframes fl{0%{box-shadow:inset 0 0 40px var(--fc),0 0 0 0 var(--fc)}100%{box-shadow:inset 0 0 0 transparent,0 0 0 0 transparent}}
-#sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:5}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:12}
 #sheet.open{display:flex}
 #sin{background:var(--panel);width:100%;max-width:540px;max-height:82vh;border-radius:10px 10px 0 0;display:flex;flex-direction:column;animation:sup .22s ease-out;border-top:2px solid var(--rust)}
 @keyframes sup{from{transform:translateY(40px);opacity:0}}
@@ -110,7 +110,23 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
 .wsw{width:56px;height:56px;border-radius:6px;border:2px solid #ffffff1a;box-shadow:inset 0 0 12px #000}
 .cur{outline:2px solid var(--bad)}
 .sel{background:#070605;color:var(--ink);border:1px solid #3a332b;border-radius:6px;height:44px;font:inherit;font-size:16px;padding:0 8px}
-#dlg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+#dlg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:13;padding:20px}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px max(20px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 42%,#3a1410 0,#160c09 42%,#060504 78%);text-align:center}
+#loader{z-index:20;transition:opacity .45s}#loader.out{opacity:0;pointer-events:none}
+#menu{z-index:8;display:none}#menu.on{display:flex;animation:mfade .35s ease-out}@keyframes mfade{from{opacity:0}}
+.mt{font:400 clamp(34px,10vw,48px)/1 'Black Ops One',Impact,sans-serif;color:#ece4d6;letter-spacing:1px;text-shadow:0 3px 0 #000,0 0 24px rgba(224,36,44,.35)}
+.mt span{display:block;color:#e0242c;font-size:.62em;margin-top:6px;letter-spacing:4px}
+#lic,#mic{width:min(52vw,230px);height:min(52vw,230px)}
+.lbar{width:min(70vw,280px);height:10px;background:#0a0807;border:1px solid #3a2a1e;border-radius:3px;overflow:hidden;margin-top:8px}
+.lbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6e0808,#e0242c);box-shadow:0 0 10px #e0242c;transition:width .2s}
+#ltxt{color:#9a8f80;font-size:15px;letter-spacing:.5px;min-height:20px}
+#mwel{font:400 20px 'Black Ops One';color:#ece4d6;margin-top:4px}#mwel b{color:#ffb81c;font-weight:400}
+#msum{color:#9a8f80;font-size:15px}
+.mbtns{display:grid;gap:10px;width:min(78vw,300px);margin-top:14px}
+.mbtns .big{height:56px;font-size:22px;background:linear-gradient(#d4262e,#7d0c10);border:1px solid #3a0406}
+.mb2{height:48px;border-radius:6px;background:#1d1a17;border:1px solid #3a332b;font-family:'Black Ops One';font-size:17px;letter-spacing:.6px;color:#ece4d6}
+.mb2:active,.mbtns .big:active{transform:translateY(1px)}
+.mver{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));color:#5e564c;font-size:13px}
 #dlg.open{display:flex}
 #dlg .box{max-width:360px;width:100%;background:var(--panel);border:1px solid #4a2a1e;text-align:center;padding:18px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -144,6 +160,9 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
     <button data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>More</span></button>
   </nav>
 </div>
+<div id="loader" class="scr"><canvas id="lic" width="460" height="460"></canvas><div class="mt">TURRET ROLL<span>DEFENSE</span></div><div class="lbar"><i id="lprog"></i></div><div id="ltxt">Loading…</div></div>
+<div id="menu" class="scr"><canvas id="mic" width="460" height="460"></canvas><div class="mt">TURRET ROLL<span>DEFENSE</span></div><div id="mwel"></div><div id="msum"></div>
+ <div class="mbtns"><button class="big" id="mplay">Continue</button><button class="mb2" data-m="settings">Settings</button><button class="mb2" data-m="stats">Stats &amp; account</button><button class="mb2" data-m="how">How to play</button></div><div class="mver">Made for Loki</div></div>
 <div id="sheet"><div id="sin"><div id="shead"><h2 id="stitle"></h2><button id="sclose" aria-label="Close">✕</button></div><div id="sbody"></div></div></div>
 <div id="dlg"><div class="box"><h3 id="dtitle"></h3><div class="sub" id="dtext"></div><div class="line" style="justify-content:center"><button class="btn" id="dno">Cancel</button><button class="btn go" id="dyes">OK</button></div></div></div>
 <script src="pixi.min.js"></script>
@@ -269,7 +288,9 @@ function gT(key,w,h,draw,ox,oy){return TC[key]||(TC[key]=mkTex(w,h,draw,ox,oy))}
 function clearTex(){for(const t of TEX){try{t.destroy(true)}catch(e){}}TEX.length=0;for(const k in TC)delete TC[k]}
 function rebuild(){if(!APP)return;clearTex();BG=makeBG();bgS.texture=canvasTex(BG);[DEC,dctx]=mkC();decTex=canvasTex(DEC);decS.texture=decTex;VIG=makeVig();vigS.texture=canvasTex(VIG);
  grainTex=canvasTex(GR);grainS.texture=grainTex;grainS.width=W;grainS.height=H;initAmb();if(!VAR||VAR.w!==S.world)buildVariants();pregen()}
-function pregen(){for(const k of['n','fast'])for(const v of VAR[k])for(let f=0;f<ZF;f++)zTex(v,f);for(const it of S.slots)if(it){baseTex(it);const a=HA[it.t]||[1,1];for(let f=0;f<(it.t===8?8:a[0]);f++)headTex(it.t,it.t===8?0:(f+.5)/a[0]*a[1],it.t===8?(f+.5)/8*1.5708:0)}}
+function pregenJobs(){const j=[];for(const k of['n','fast','tank'])for(const v of VAR[k])for(let f=0;f<ZF;f++)j.push(()=>zTex(v,f));for(const it of S.slots)if(it){j.push(()=>baseTex(it));const a=HA[it.t]||[1,1];for(let f=0;f<(it.t===8?8:a[0]);f++)j.push(()=>headTex(it.t,it.t===8?0:(f+.5)/a[0]*a[1],it.t===8?(f+.5)/8*1.5708:0))}return j}
+function pregen(){if(LOADING)return;for(const f of pregenJobs())f()}
+let LOADING=true,MENU=true,pendingWelcome=null;
 function seeded(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const GR=document.createElement('canvas');GR.width=GR.height=128;{const g=GR.getContext('2d'),im=g.createImageData(128,128);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}g.putImageData(im,0,0)}
 const GLOW={};function glowS(col){if(!GLOW[col]){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,hexA(col,1));gr.addColorStop(.22,hexA(col,.55));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.fillRect(0,0,64,64);GLOW[col]=c}return GLOW[col]}
@@ -693,7 +714,7 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
  if(tab==='more'){$('#stitle').textContent='More';h+=`<div class="box"><h3>Stats</h3><div class="stats"><span>World</span><span>${Wd().n}</span><span>Wave</span><span>${S.wave}</span><span>Total luck</span><span>x${luck().toFixed(2)}</span><span>Money multiplier</span><span>x${fmt(moneyMult())}</span><span>Damage multiplier</span><span>x${dmgMult().toFixed(2)}</span><span>Team DPS</span><span>${fmt(S.slots.reduce((a,it)=>a+(it?dps(it):0),0))}</span><span>Zombies killed</span><span>${fmt(S.kills)}</span><span>Income</span><span>${fmt(S.rate)}/s</span></div></div>
   <div class="box"><h3>Roll odds now</h3><div class="stats">${(()=>{const L=luck(),ws=RAR.map((r,i)=>r.w*Math.pow(L,i)),t=ws.reduce((a,b)=>a+b);return RAR.map((r,i)=>`<span style="color:${r.c}">${r.n}</span><span>${(ws[i]/t*100).toFixed(ws[i]/t<.01?2:1)}%</span>`).join('')})()}<span>Any mod</span><span>${unlockedMods().length?(Math.min(.5,.07*Math.pow(luck(),.6))*100).toFixed(1)+'%':'Rebirth to unlock'}</span></div></div>
   <div class="box"><h3>Turret index</h3><div class="stats">${TUR.map(T=>`<span style="color:${RAR[T.r].c}">${T.n}</span><span class="sub">${KN[T.k]}</span>`).join('')}</div></div>
-  <div class="sub">Settings, your account and save backups are under the gear button at the top.</div>`}
+  <div class="sub">Settings, your account and save backups are under the gear button at the top.</div><button class="btn" data-act="menu">Main menu</button>`}
  if(tab==='settings'){$('#stitle').textContent='Settings';const T=S.set,tg=(k,l,d)=>`<div class="line"><div><b>${l}</b>${d?`<div class="sub">${d}</div>`:''}</div><button class="tog ${T[k]?'on':''}" data-act="tg" data-k="${k}">${T[k]?'ON':'OFF'}</button></div>`,
   sl=(k,l)=>`<label class="line"><div><b>${l}</b></div><span class="sub" id="v_${k}" style="width:44px;text-align:right">${T[k]}%</span></label><input type="range" min="0" max="100" step="5" value="${T[k]}" data-act="vol" data-k="${k}">`,
   se=(k,l,opts,d)=>`<div class="line"><div><b>${l}</b>${d?`<div class="sub">${d}</div>`:''}</div><select class="sel" data-act="set" data-k="${k}">${opts.map(([v,n])=>`<option value="${v}" ${String(T[k])===String(v)?'selected':''}>${n}</option>`).join('')}</select></div>`,
@@ -721,6 +742,7 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='travel'){const w=+t.dataset.w;ask(`Travel to ${world(w).n}?`,'This resets your wave, turrets and money.','Travel',()=>{resetRun(w);closeSheet()})}
  if(a==='g_ar')gem(3,()=>S.g.ar=1);if(a==='g_ab')gem(5,()=>S.g.ab=1);if(a==='g_flt')gem(4,()=>S.g.flt=1);if(a==='g_arb')gem(15,()=>S.g.arb=1);
  if(a==='g_spd')gem(SPEEDC[S.g.spd+1],()=>{S.g.spd++;S.spdSel=S.g.spd});if(a==='g_lp')gem(2,()=>S.lp+=300);if(a==='g_mp')gem(2,()=>S.mp+=300);if(a==='g_guar')gem(4,()=>S.guar++);if(a==='g_off')gem(3*(S.g.off+1),()=>S.g.off++);
+ if(a==='menu'){openMenu();return}
  if(a==='tg'){S.set[k]=S.set[k]?0:1;if(k==='badges')for(const q in TB)delete TB[q];save();render();return}
  if(a==='mute'){audio();S.mute=S.mute?0:1;if(S.mute)setDrone(false);sndIcon();save();render();return}
  if(a==='exp'){save();$('#savebox').value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));return}
@@ -753,11 +775,11 @@ cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=(e.cl
  $('#dno').style.display='none'});
 
 /* ---------- loop ---------- */
-function afterLoad(){S.set=Object.assign({},SETD,S.set||{});S.sk=Object.assign({d:0,l:0,m:0},S.sk);S.g=Object.assign({ar:0,ab:0,flt:0,spd:0,arb:0,off:0},S.g);if(!Array.isArray(S.bestW))S.bestW=[0];if(!S.slots||S.slots.length!==16)S.slots=startSlots();{const ns=Array(16).fill(null);S.slots.forEach(o=>{if(!o)return;const k=slotOf(o.t),c=ns[k];if(!c||(o.lv||0)>(c.lv||0)||((o.lv||0)===(c.lv||0)&&o.m>c.m))ns[k]=o});S.slots=ns}if(!S.slots.some(Boolean))S.slots=startSlots();S.slots.forEach(s=>{if(s){s.lv=s.lv||0;s.dp=s.dp||0}});
+function afterLoad(){if(!S.nameSet){if(!S.name||S.name==='Survivor')S.name='Loki';S.nameSet=1}S.set=Object.assign({},SETD,S.set||{});S.sk=Object.assign({d:0,l:0,m:0},S.sk);S.g=Object.assign({ar:0,ab:0,flt:0,spd:0,arb:0,off:0},S.g);if(!Array.isArray(S.bestW))S.bestW=[0];if(!S.slots||S.slots.length!==16)S.slots=startSlots();{const ns=Array(16).fill(null);S.slots.forEach(o=>{if(!o)return;const k=slotOf(o.t),c=ns[k];if(!c||(o.lv||0)>(c.lv||0)||((o.lv||0)===(c.lv||0)&&o.m>c.m))ns[k]=o});S.slots=ns}if(!S.slots.some(Boolean))S.slots=startSlots();S.slots.forEach(s=>{if(s){s.lv=s.lv||0;s.dp=s.dp||0}});
  S.spdSel=Math.min(S.spdSel,S.g.spd);G.z=[];G.p=[];G.fx=[];G.corpses=[];G.state='break';G.bt=1;rebuild();renderAutos();renderCard();hud()}
 let last=performance.now(),hudT=0,saveT=0,sheetT=0,prevAnim=0,fpsN=0,fpsT=0,FPS=60,slowWin=0,miniF=0;
 function applyQ(){Q=S.gfx==='auto'||S.gfx==null?Q:+S.gfx;resize()}
-function frame(now){const real=(now-last)/1000;if(S.set.cap<60&&real<1/S.set.cap-.006){requestAnimationFrame(frame);return}
+function frame(now){if(MENU){last=now;requestAnimationFrame(frame);return}const real=(now-last)/1000;if(S.set.cap<60&&real<1/S.set.cap-.006){requestAnimationFrame(frame);return}
  const rdt=Math.min(.05,real);last=now;const t=(now-T0)/1000;if(!document.hidden)S.time+=rdt;
  if(S.lp>0)S.lp=Math.max(0,S.lp-rdt);if(S.mp>0)S.mp=Math.max(0,S.mp-rdt);if(G.shake>0)G.shake=Math.max(0,G.shake-rdt);
  const sp=SPEEDS[S.spdSel],n=Math.ceil(sp);for(let i=0;i<n;i++)sim(rdt*sp/n);
@@ -772,11 +794,28 @@ function frame(now){const real=(now-last)/1000;if(S.set.cap<60&&real<1/S.set.cap
  saveT-=rdt;if(saveT<=0){saveT=5;save()}
  requestAnimationFrame(frame)}
 window.addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});window.addEventListener('pagehide',save);
-(async()=>{try{await initGPU()}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:grid;place-items:center;background:#000;color:#fff;padding:20px;text-align:center;z-index:99">This phone could not start the graphics engine (WebGL).<br>'+String(e&&e.message||e)+'</div>');return}
-afterLoad();if(S.gfx!=null&&S.gfx!=='auto')Q=+S.gfx;resize();sndIcon();
-// offline earnings
-{const away=Math.min((Date.now()-(S.last||Date.now()))/1000,28800);const wn=Math.min(8+Math.floor(S.wave*1.1),45),wps=wn*zval()*(S.mp>0?moneyMult()/2:moneyMult())/(wn*Math.max(.35,1-S.wave*.01)+20);if(away>60){const v=wps*away*(.25+S.g.off*.12);S.money+=v;const hrs=Math.floor(away/3600),mins=Math.floor(away%3600/60);setTimeout(()=>info(`Welcome back, ${S.name||'Survivor'}!`,`You were away ${hrs?hrs+'h ':''}${mins}m.<br>Your turrets held the line at wave ${S.wave} in ${Wd().n} and earned <b style="color:#ffc940">${fmt(v)}</b> money.<br><span style="font-size:12px">Waves only go up while you play.</span>`),300)}}
-if(S.kills===0)setTimeout(()=>toast('Tap Roll to find turrets. Tap a turret to see its stats.'),600);
+function emblem(c,t){const g=c.getContext('2d'),S2=c.width/120;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);g.setTransform(S2,0,0,S2,60*S2,60*S2);
+ g.strokeStyle='rgba(224,36,44,.85)';g.lineWidth=2.4;g.beginPath();g.arc(0,0,44,0,7);g.stroke();for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;g.beginPath();g.moveTo(Math.cos(a)*36,Math.sin(a)*36);g.lineTo(Math.cos(a)*52,Math.sin(a)*52);g.stroke()}
+ g.scale(1.45,1.45);drawTurret(g,{t:8,m:4,lv:0},-Math.PI/4+Math.sin(t*.8)*.5,t,false,0,t*14)}
+let menuRaf=0;function menuLoop(now){if(!MENU)return;emblem($('#mic'),now/1000);menuRaf=requestAnimationFrame(menuLoop)}
+function openMenu(){MENU=true;save();setDrone(false);closeSheet();const nm=(S.name||'Survivor').replace(/[&<>"]/g,'');
+ $('#mwel').innerHTML=S.kills>0?`Welcome back, <b>${nm}</b>`:`Welcome, <b>${nm}</b>`;
+ $('#msum').textContent=S.kills>0?`${Wd().n} · Wave ${S.wave} · ${S.rb} rebirth${S.rb===1?'':'s'} · ${fmt(S.gems)} gems`:'Hold the line. Roll turrets. Survive.';
+ $('#mplay').textContent=S.kills>0?'Continue':'Play';$('#menu').classList.add('on');cancelAnimationFrame(menuRaf);menuRaf=requestAnimationFrame(menuLoop)}
+function closeMenu(){audio();MENU=false;$('#menu').classList.remove('on');cancelAnimationFrame(menuRaf);last=performance.now();
+ if(pendingWelcome){const f=pendingWelcome;pendingWelcome=null;setTimeout(f,250)}else if(S.kills===0)setTimeout(()=>toast('Tap Roll to find turrets. Tap a turret to see its stats.'),400)}
+$('#mplay').onclick=closeMenu;
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{audio();const m=b.dataset.m;if(m==='settings'||m==='stats')openTab('settings');
+ if(m==='how')info('How to play','<div style="text-align:left;display:grid;gap:6px;margin-top:6px">• <b>Roll</b> is free. <b>Buy</b> the turret if you can afford it.<br>• Each turret has its own slot, rarest at the top.<br>• Buying a turret you own adds a <b>duplicate</b>: collect them to level it up to 10.<br>• Kill zombies for money. Bosses every 10 waves drop <b>gems</b>.<br>• Spend money on <b>Skills</b> (damage, luck, money). They are permanent.<br>• <b>Rebirth</b> to reset your run for more luck, more money and rarer mods.<br>• Reach new <b>worlds</b> with rebirths and high waves.<br>• Waves only go up while you play; you earn some money while away.</div>')});
+const BOOT=performance.now();
+(async()=>{emblem($('#lic'),0);$('#lprog').style.width='10%';$('#ltxt').textContent='Starting graphics engine…';await new Promise(r=>requestAnimationFrame(()=>r()));try{await initGPU()}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:grid;place-items:center;background:#000;color:#fff;padding:20px;text-align:center;z-index:99">This phone could not start the graphics engine (WebGL).<br>'+String(e&&e.message||e)+'</div>');return}
+const nf=()=>new Promise(r=>requestAnimationFrame(()=>r())),prog=(p,txt)=>{$('#lprog').style.width=Math.round(p*100)+'%';if(txt&&$('#ltxt').textContent!==txt)$('#ltxt').textContent=txt};
+afterLoad();if(S.gfx!=null&&S.gfx!=='auto')Q=+S.gfx;resize();sndIcon();prog(.3,'Building the battlefield…');await nf();
+{const jobs=pregenJobs();for(let k=0;k<jobs.length;k++){jobs[k]();if(k%6===5){prog(.3+.65*k/jobs.length,k<jobs.length*.6?'Raising the dead…':'Arming the turrets…');await nf()}}}
+LOADING=false;prog(1,'Ready');
+{const away=Math.min((Date.now()-(S.last||Date.now()))/1000,28800);const wn=Math.min(8+Math.floor(S.wave*1.1),45),wps=wn*zval()*(S.mp>0?moneyMult()/2:moneyMult())/(wn*Math.max(.35,1-S.wave*.01)+20);if(away>60){const v=wps*away*(.25+S.g.off*.12);S.money+=v;const hrs=Math.floor(away/3600),mins=Math.floor(away%3600/60);pendingWelcome=()=>info(`Welcome back, ${S.name||'Survivor'}!`,`You were away ${hrs?hrs+'h ':''}${mins}m.<br>Your turrets held the line at wave ${S.wave} in ${Wd().n} and earned <b style="color:#ffc940">${fmt(v)}</b> money.<br><span style="font-size:12px">Waves only go up while you play.</span>`)}}
+await new Promise(r=>setTimeout(r,Math.max(250,1300-(performance.now()-BOOT))));
+openMenu();$('#loader').classList.add('out');setTimeout(()=>$('#loader').remove(),500);
 requestAnimationFrame(frame);
 })();
 }
