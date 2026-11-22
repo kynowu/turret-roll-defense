@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Turret Roll Defense</string>
-    <string name="title_activity_main">Turret Roll Defense</string>
+    <string name="app_name">Rot &amp; Roll</string>
+    <string name="title_activity_main">Rot &amp; Roll</string>
     <string name="package_name">com.turretroll.defense</string>
     <string name="custom_url_scheme">com.turretroll.defense</string>
 </resources>

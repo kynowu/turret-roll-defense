@@ -1,4 +1,4 @@
-# Turret Roll Defense
+# Rot & Roll
 
 A dark top-down idle wave-defense game. Roll turrets, level them up with duplicates, rebirth, and push through five worlds.
 
@@ -7,7 +7,7 @@ A dark top-down idle wave-defense game. Roll turrets, level them up with duplica
 Every push to `main` builds a new APK on GitHub's servers.
 
 1. Open this repo on GitHub, then **Releases** (or the **Actions** tab to watch a build run).
-2. Download `TurretRollDefense.apk` from the newest release on your Android phone.
+2. Download `RotAndRoll.apk` from the newest release on your Android phone.
 3. Open it. If asked, allow your browser or file manager to "install unknown apps".
 
 New builds install over the old one and keep your save, because every build is signed with the same key (`android/app/turret.keystore`).

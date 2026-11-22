@@ -1,6 +1,8 @@
 {
   "appId": "com.turretroll.defense",
-  "appName": "Turret Roll Defense",
+  "appName": "Rot & Roll",
   "webDir": "www",
-  "android": { "backgroundColor": "#090807" }
+  "android": {
+    "backgroundColor": "#090807"
+  }
 }
