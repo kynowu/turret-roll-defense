@@ -286,13 +286,13 @@ function setDrone(on){if(!AC||AC.state!=='running')return;if(on&&!drone){const o
 /* ---------- canvas ---------- */
 const cv=$('#cv');let SC=1,DPR=1,TR=1,BG=null,DEC=null,dctx=null,VIG=null,decDirty=false,decUp=0;
 let APP=null;const L={},TC={},TEX=[];let bgS,decS,vigS,grainS,lg,selS,decTex,grainTex;
-function mkC(){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(W*TR));c.height=Math.max(1,Math.round(H*TR));const g=c.getContext('2d');g.scale(TR,TR);return[c,g]}
+function mkC(){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(W*TR));c.height=Math.max(1,Math.round(H*TR));const g=c.getContext('2d',{willReadFrequently:true});g.scale(TR,TR);return[c,g]}
 let Q=1,AR=2.5;const QN=['Low','Medium','High'];
 function resize(){if(!APP)return;const st=$('#stage');const cw=st.clientWidth-8,ch=st.clientHeight-8;SC=Math.max(.3,Math.min(cw/W,ch/H));DPR=Math.min({auto:AR,'1':1,'1.5':1.5,'2':2,native:4}[S.set.res]||AR,window.devicePixelRatio||1);TR=SC*DPR;
  APP.renderer.resize(Math.round(W*SC),Math.round(H*SC),DPR);L.root.scale.set(SC);rebuild();fpsWarm=4}
 let fpsWarm=4;
 function canvasTex(c){const t=PIXI.Texture.from({resource:c,resolution:TR});TEX.push(t);return t}
-function mkTex(w,h,draw,ox=w/2,oy=h/2){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w*TR));c.height=Math.max(1,Math.ceil(h*TR));const g=c.getContext('2d');g.setTransform(TR,0,0,TR,ox*TR,oy*TR);draw(g);return canvasTex(c)}
+function mkTex(w,h,draw,ox=w/2,oy=h/2){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w*TR));c.height=Math.max(1,Math.ceil(h*TR));const g=c.getContext('2d',{willReadFrequently:true});g.setTransform(TR,0,0,TR,ox*TR,oy*TR);draw(g);return canvasTex(c)}
 function gT(key,w,h,draw,ox,oy){return TC[key]||(TC[key]=mkTex(w,h,draw,ox,oy))}
 function clearTex(){for(const t of TEX){try{t.destroy(true)}catch(e){}}TEX.length=0;for(const k in TC)delete TC[k]}
 function rebuild(){if(!APP)return;clearTex();BG=makeBG();bgS.texture=canvasTex(BG);[DEC,dctx]=mkC();decTex=canvasTex(DEC);decS.texture=decTex;VIG=makeVig();vigS.texture=canvasTex(VIG);
@@ -301,7 +301,7 @@ function pregenJobs(){const j=[];for(const k of['n','fast','tank'])for(const v o
 function pregen(){if(LOADING)return;for(const f of pregenJobs())f()}
 let LOADING=true,MENU=true,pendingWelcome=null;
 function seeded(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const GR=document.createElement('canvas');GR.width=GR.height=128;{const g=GR.getContext('2d'),im=g.createImageData(128,128);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}g.putImageData(im,0,0)}
+const GR=document.createElement('canvas');GR.width=GR.height=128;{const g=GR.getContext('2d',{willReadFrequently:true}),im=g.createImageData(128,128);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}g.putImageData(im,0,0)}
 const GLOW={};function glowS(col){if(!GLOW[col]){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,hexA(col,1));gr.addColorStop(.22,hexA(col,.55));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.fillRect(0,0,64,64);GLOW[col]=c}return GLOW[col]}
 function glow(c,x,y,r,col,a=1){if(a<=0)return;c.globalAlpha=Math.min(1,a);c.drawImage(glowS(col),x-r,y-r,r*2,r*2);c.globalAlpha=1}
 function makeVig(){const[c,g]=mkC();let gr=g.createRadialGradient(W/2,H*.56,H*.18,W/2,H*.56,H*.78);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.7)');g.fillStyle=gr;g.fillRect(0,0,W,H);
@@ -867,7 +867,7 @@ function frame(now){if(MENU||PAUSED){last=now;requestAnimationFrame(frame);retur
  sheetT-=rdt;if(sheetT<=0){sheetT=1;if(tab&&!['more','settings','dex','ach'].includes(tab)&&document.activeElement?.tagName!=='SELECT')render()}
  saveT-=rdt;if(saveT<=0){saveT=5;save()}
  requestAnimationFrame(frame)}
-window.addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});window.addEventListener('pagehide',save);
+window.addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else if(APP&&!LOADING)setTimeout(()=>{rebuild();last=performance.now()},60)});cv.addEventListener('webglcontextrestored',()=>{if(!LOADING)setTimeout(rebuild,60)});window.addEventListener('pagehide',save);
 function emblem(c,t){const g=c.getContext('2d'),S2=c.width/120;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);g.setTransform(S2,0,0,S2,60*S2,60*S2);
  g.strokeStyle='rgba(224,36,44,.85)';g.lineWidth=2.4;g.beginPath();g.arc(0,0,44,0,7);g.stroke();for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;g.beginPath();g.moveTo(Math.cos(a)*36,Math.sin(a)*36);g.lineTo(Math.cos(a)*52,Math.sin(a)*52);g.stroke()}
  g.scale(1.45,1.45);drawTurret(g,{t:8,m:4,lv:0},-Math.PI/4+Math.sin(t*.8)*.5,t,false,0,t*14)}
