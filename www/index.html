@@ -55,7 +55,8 @@ button:focus-visible{outline:3px solid var(--good);outline-offset:2px}
 #banner b{font:30px 'Black Ops One';font-weight:400;color:#ece4d6}
 #banner.boss b{color:#ff3a3a}
 #banner small{font:14px 'Black Ops One';color:#c9bea4;margin-top:4px}
-#cv{display:block;border-radius:4px;touch-action:none;box-shadow:0 0 0 1px #2a221a,0 0 30px #000}
+#bgc,#decc{position:absolute;left:0;top:0;pointer-events:none}
+#cv{position:relative;display:block;border-radius:4px;touch-action:none;box-shadow:0 0 0 1px #2a221a,0 0 30px #000}
 #toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:grid;gap:6px;pointer-events:none;width:92%;justify-items:center}
 .t{background:rgba(8,6,5,.92);border:1px solid #4a2a1e;border-left:3px solid var(--bad);padding:7px 14px;border-radius:4px;font-size:15px;animation:tin .25s ease-out;text-align:center;letter-spacing:.3px}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}}
@@ -147,7 +148,7 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
     </div>
     <div id="wavebar"><button id="pause" class="pbtn" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button><span id="wlabel">Plains · Wave 1</span><span id="boss">BOSS</span><div class="hpbar" title="Base health"><i id="hp"></i></div><div id="pots"></div></div>
   </div>
-  <div id="stage"><div id="wrap"><canvas id="cv"></canvas><div id="ovl"></div><div id="banner"></div></div><div id="toast"></div></div>
+  <div id="stage"><div id="wrap"><canvas id="bgc"></canvas><canvas id="decc"></canvas><canvas id="cv"></canvas><div id="ovl"></div><div id="banner"></div></div><div id="toast"></div></div>
   <div id="rollp" class="grit">
     <canvas id="mini" width="156" height="156"></canvas>
     <div id="cinfo">
@@ -217,7 +218,7 @@ const SLOTS=[];for(let i=0;i<16;i++){const L=i<8;SLOTS.push({x:L?96:264,y:60+(i%
 
 /* ---------- state ---------- */
 const KEY='turretRollDefense_v1';
-const SETD={vib:1,master:80,sfx:100,music:70,res:'auto',cap:60,fps:0,dmg:1,cash:1,shake:1,gore:1,dps:'off',badges:1};
+const SETD={compat:0,vib:1,master:80,sfx:100,music:70,res:'auto',cap:60,fps:0,dmg:1,cash:1,shake:1,gore:1,dps:'off',badges:1};
 function fresh(){return{name:'Survivor',time:0,earned:0,set:Object.assign({},SETD),money:50,gems:0,wave:1,rb:0,world:0,unl:0,bestW:[0],sk:{d:0,l:0,m:0},slots:startSlots(),
  g:{ar:0,ab:0,flt:0,spd:0,arb:0,off:0},autoRoll:1,autoBuy:1,autoRb:0,fMin:0,spdSel:0,lp:0,mp:0,guar:0,rate:0,last:Date.now(),kills:0,roll:null}}
 function startSlots(){const s=Array(16).fill(null);s[7]={t:0,m:-1,lv:0,dp:0};return s}
@@ -295,7 +296,8 @@ function canvasTex(c){const t=PIXI.Texture.from({resource:c,resolution:TR});TEX.
 function mkTex(w,h,draw,ox=w/2,oy=h/2){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w*TR));c.height=Math.max(1,Math.ceil(h*TR));const g=c.getContext('2d',{willReadFrequently:true});g.setTransform(TR,0,0,TR,ox*TR,oy*TR);draw(g);return canvasTex(c)}
 function gT(key,w,h,draw,ox,oy){return TC[key]||(TC[key]=mkTex(w,h,draw,ox,oy))}
 function clearTex(){for(const t of TEX){try{t.destroy(true)}catch(e){}}TEX.length=0;for(const k in TC)delete TC[k]}
-function rebuild(){if(!APP)return;clearTex();BG=makeBG();bgS.texture=canvasTex(BG);[DEC,dctx]=mkC();decTex=canvasTex(DEC);decS.texture=decTex;VIG=makeVig();vigS.texture=canvasTex(VIG);
+function sizeC(c){c.width=Math.max(1,Math.round(W*TR));c.height=Math.max(1,Math.round(H*TR));c.style.width=W*SC+'px';c.style.height=H*SC+'px'}
+function rebuild(){if(!APP)return;clearTex();BG=makeBG();const bc=$('#bgc');sizeC(bc);bc.getContext('2d').drawImage(BG,0,0);bgS.visible=false;DEC=$('#decc');sizeC(DEC);dctx=DEC.getContext('2d');dctx.setTransform(TR,0,0,TR,0,0);decS.visible=false;VIG=makeVig();vigS.texture=canvasTex(VIG);
  grainTex=canvasTex(GR);grainS.texture=grainTex;grainS.width=W;grainS.height=H;initAmb();if(!VAR||VAR.w!==S.world)buildVariants();pregen()}
 function pregenJobs(){const j=[];for(const k of['n','fast','tank'])for(const v of VAR[k])for(let f=0;f<ZF;f++)j.push(()=>zTex(v,f));for(const it of S.slots)if(it){j.push(()=>baseTex(it));const a=HA[it.t]||[1,1];for(let f=0;f<(it.t===8?8:a[0]);f++)j.push(()=>headTex(it.t,it.t===8?0:(f+.5)/a[0]*a[1],it.t===8?(f+.5)/8*1.5708:0))}return j}
 function pregen(){if(LOADING)return;for(const f of pregenJobs())f()}
@@ -546,7 +548,8 @@ class TPool{constructor(layer){this.l=layer;this.a=[];this.i=0}
   if(s.text!==txt)s.text=txt;if(s.style.fontSize!==size)s.style.fontSize=size;s.visible=true;s.position.set(x,y);s.alpha=1;s.tint=0xffffff;return s}
  end(){for(let k=this.i;k<this.a.length;k++)if(this.a[k].visible)this.a[k].visible=false}}
 let P_={};
-async function initGPU(){APP=new PIXI.Application();await APP.init({canvas:cv,width:W,height:H,resolution:1,autoDensity:true,backgroundAlpha:0,antialias:false,autoStart:false,preference:'webgl',powerPreference:'high-performance'});
+async function initGPU(){APP=new PIXI.Application();await APP.init({preferWebGLVersion:S.set&&S.set.compat?1:2,canvas:cv,width:W,height:H,resolution:1,autoDensity:true,backgroundAlpha:0,antialias:false,autoStart:false,preference:'webgl',powerPreference:'high-performance'});
+ if(S.set&&S.set.compat){try{APP.renderer.limits.maxBatchableTextures=1}catch(e){}}
  try{await document.fonts.load('24px "Black Ops One"')}catch(e){}
  PIXI.BitmapFont.install({name:'Ops',style:{fontFamily:'Black Ops One, Impact, sans-serif',fontSize:28,fill:'#ffffff',stroke:{color:'#000000',width:5}},chars:[['0','9'],['A','Z'],['a','z'],'+.,·/ %-'],resolution:2});
  const C=()=>new PIXI.Container(),root=L.root=C();APP.stage.addChild(root);
@@ -556,12 +559,11 @@ async function initGPU(){APP=new PIXI.Application();await APP.init({canvas:cv,wi
  lg=new PIXI.Graphics();lg.blendMode='add';root.addChild(lg);root.addChild(lay('light'),lay('amb'),grainS,lay('dtxt'));
  P_={corpse:new Pool(L.corpse),zomb:new Pool(L.zomb),bar:new Pool(L.bar),fog:new Pool(L.fog),tglow:new Pool(L.tglow,'add'),tback:new Pool(L.tback),tbase:new Pool(L.tbase),tunder:new Pool(L.tunder),thead:new Pool(L.thead),tover:new Pool(L.tover),badge:new Pool(L.badge),sel:new Pool(L.sel),proj:new Pool(L.proj),fx:new Pool(L.fx),light:new Pool(L.light,'add'),amb:new Pool(L.amb),ambA:new Pool(L.amb,'add'),txt:new TPool(L.txt),dtxt:new TPool(L.dtxt)}}
 // ----- per-frame draw -----
-let sel=-1,replaceMode=false,T0=performance.now(),decT=0;
+let sel=-1,replaceMode=false,T0=performance.now(),decT=0,bgShk=false;
 const FOGC=['#8c8c78','#a07850','#c8d8ee','#ff5a1a','#7a3cff'];
 function gpuDraw(t,rdt){const wi=Math.min(S.world,4),Pz=Wd().z;for(const k in P_)P_[k].begin();lg.clear();
  decT+=rdt;if(decT>.5){decT=0;dctx.save();dctx.setTransform(1,0,0,1,0,0);dctx.globalCompositeOperation='destination-out';dctx.fillStyle='rgba(0,0,0,.035)';dctx.fillRect(0,0,DEC.width,DEC.height);dctx.restore();decDirty=true}
- decUp-=rdt;if(decDirty&&decUp<=0){decTex.source.update();decDirty=false;decUp=.15}
- const shk=S.set.shake&&G.shake>0;L.root.position.set(shk?rnd(-3,3)*G.shake*4*SC:0,shk?rnd(-3,3)*G.shake*4*SC:0);
+ const shk=S.set.shake&&G.shake>0,shx=shk?rnd(-3,3)*G.shake*4*SC:0,shy=shk?rnd(-3,3)*G.shake*4*SC:0;L.root.position.set(shx,shy);if(shk||bgShk){const tf=shk?`translate(${shx}px,${shy}px)`:'';$('#bgc').style.transform=tf;DEC.style.transform=tf;bgShk=shk}
  // corpses
  for(const k of G.corpses){if(!k.vr)continue;const s=P_.corpse.get(cTex(k.vr),k.x,k.y);s.rotation=k.a;s.alpha=Math.min(1,k.l/1.5)}
  // zombies, hp bars, eyes
@@ -734,7 +736,7 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
   <div class="box"><h3>Audio</h3>${sl('master','Master volume')}${sl('sfx','Effects')}${sl('music','Boss music')}<div class="line"><div><b>Mute everything</b></div><button class="tog ${S.mute?'on':''}" data-act="mute">${S.mute?'ON':'OFF'}</button></div></div>
   <div class="box"><h3>Graphics</h3>${se('gfxq','Quality',[['auto','Auto (now '+QN[Q]+')'],['0','Low'],['1','Medium'],['2','High']],'Effects only: Low turns off fog and grain and limits particles. Sharpness is set by Resolution.')}
    ${se('res','Resolution',[['auto','Auto (sharp, lowers only if needed)'],['1','Low (1x)'],['1.5','Medium (1.5x)'],['2','High (2x)'],['native','Native']],'Lower is smoother, higher is sharper.')}
-   ${se('cap','Frame limit',[['30','30 FPS (saves battery)'],['60','60 FPS']])}${tg('fps','FPS counter')}</div>
+   ${tg('compat','Compatibility mode','Try this if parts of the game are missing or black. The app restarts.')}<button class="btn" data-act="gfxinfo">Graphics check</button>${se('cap','Frame limit',[['30','30 FPS (saves battery)'],['60','60 FPS']])}${tg('fps','FPS counter')}</div>
   <div class="box"><h3>Display</h3>${se('dps','DPS meter',[['off','Off'],['team','Team panel'],['turret','Under each turret'],['both','Both']])}
    ${tg('vib','Vibration on rolls','Stronger and longer for rarer turrets and mods.')}${tg('dmg','Damage numbers')}${tg('cash','Money pop-ups')}${tg('badges','Turret level badges')}${tg('shake','Screen shake')}${tg('gore','Blood and gore','Off removes blood, gore and corpses.')}</div>
   <div class="box"><h3>Backup save</h3><div class="sub">Copy this code somewhere safe, or paste one to load it.</div><textarea id="savebox" spellcheck="false"></textarea><div class="line"><button class="btn" data-act="exp">Show code</button><button class="btn" data-act="copy">Copy</button><button class="btn go" data-act="imp">Load</button></div></div>
@@ -754,6 +756,8 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='menu'){openMenu();return}
  if(a==='quests'||a==='ach'||a==='dex'){openTab(a);return}
  if(a==='tut'){closeSheet();startTut();return}
+ if(a==='gfxinfo'){gfxInfo();return}
+ if(a==='tg'&&k==='compat'){S.set.compat=S.set.compat?0:1;save();location.reload();return}
  if(a==='tg'){S.set[k]=S.set[k]?0:1;if(k==='badges')for(const q in TB)delete TB[q];save();render();return}
  if(a==='mute'){audio();S.mute=S.mute?0:1;if(S.mute)setDrone(false);sndIcon();save();render();return}
  if(a==='exp'){save();$('#savebox').value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));return}
@@ -848,6 +852,9 @@ function renderExtras(h){
 function drawDex(){document.querySelectorAll('canvas[data-dex]').forEach(c=>{const g=c.getContext('2d'),t=+c.dataset.dex;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,120,120);g.setTransform(2,0,0,2,60,60);drawTurret(g,{t,m:-1,lv:0},-Math.PI/2,1,false);
   if(c.dataset.k!=='1'){g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-atop';g.fillStyle='#0b0908';g.fillRect(0,0,120,120);g.globalCompositeOperation='source-over'}})}
 
+function gfxInfo(){let gpu='?',ver='?',mts='?',mtu='?';try{const gl=APP.renderer.gl;ver=gl instanceof WebGL2RenderingContext?'WebGL 2':'WebGL 1';const d=gl.getExtension('WEBGL_debug_renderer_info');gpu=d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);mts=gl.getParameter(gl.MAX_TEXTURE_SIZE);mtu=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)}catch(e){}
+ const L2=APP.renderer.limits||{};const c=document.createElement('canvas');c.width=220;c.height=110;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,220,110);try{g.drawImage(TC['h0_0']?TC['h0_0'].source.resource:BG,0,0,110,110);g.drawImage(BG,110,0,110,110)}catch(e){}
+ info('Graphics check',`<div class="stats" style="text-align:left;font-size:13px"><span>Engine</span><span>${ver}</span><span>GPU</span><span style="font-size:11px">${String(gpu).slice(0,40)}</span><span>Max texture</span><span>${mts}</span><span>Texture units</span><span>${mtu}</span><span>Batch textures</span><span>${L2.maxBatchableTextures}</span><span>Pixel ratio</span><span>${(window.devicePixelRatio||1).toFixed(2)} / ${DPR.toFixed(2)}</span><span>Texture scale</span><span>${TR.toFixed(2)}</span><span>Textures</span><span>${TEX.length}</span><span>Compat mode</span><span>${S.set.compat?'On':'Off'}</span></div><img src="${c.toDataURL()}" style="width:220px;height:110px;margin-top:8px;border:1px solid #333">`)}
 /* ---------- loop ---------- */
 function afterLoad(){S.st=Object.assign({rolls:0,buys:0,bosses:0,quests:0},S.st||{});S.ach=S.ach||{};S.daily=Object.assign({last:'',streak:0},S.daily||{});S.dex=S.dex||{t:Array(16).fill(0),m:Array(5).fill(0)};(S.slots||[]).forEach(o=>{if(o){S.dex.t[o.t]=1;if(o.m>=0)S.dex.m[o.m]=1}});if(S.kills>0&&S.tut==null)S.tut=1;if(!S.nameSet){if(!S.name||S.name==='Survivor')S.name='Loki';S.nameSet=1}S.set=Object.assign({},SETD,S.set||{});S.sk=Object.assign({d:0,l:0,m:0},S.sk);S.g=Object.assign({ar:0,ab:0,flt:0,spd:0,arb:0,off:0},S.g);if(!Array.isArray(S.bestW))S.bestW=[0];if(!S.slots||S.slots.length!==16)S.slots=startSlots();{const ns=Array(16).fill(null);S.slots.forEach(o=>{if(!o)return;const k=slotOf(o.t),c=ns[k];if(!c||(o.lv||0)>(c.lv||0)||((o.lv||0)===(c.lv||0)&&o.m>c.m))ns[k]=o});S.slots=ns}if(!S.slots.some(Boolean))S.slots=startSlots();S.slots.forEach(s=>{if(s){s.lv=s.lv||0;s.dp=s.dp||0}});
  S.spdSel=Math.min(S.spdSel,S.g.spd);G.z=[];G.p=[];G.fx=[];G.corpses=[];G.state='break';G.bt=1;rebuild();renderAutos();renderCard();hud()}
