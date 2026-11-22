@@ -292,7 +292,8 @@ let Q=1,AR=2.5;const QN=['Low','Medium','High'];
 function resize(){if(!APP)return;const st=$('#stage');const cw=st.clientWidth-8,ch=st.clientHeight-8;SC=Math.max(.3,Math.min(cw/W,ch/H));DPR=Math.min({auto:AR,'1':1,'1.5':1.5,'2':2,native:4}[S.set.res]||AR,window.devicePixelRatio||1);TR=SC*DPR;
  APP.renderer.resize(Math.round(W*SC),Math.round(H*SC),DPR);L.root.scale.set(SC);rebuild();fpsWarm=4}
 let fpsWarm=4;
-function canvasTex(c){const t=PIXI.Texture.from({resource:c,resolution:TR});TEX.push(t);return t}
+// ImageSource (not CanvasSource): CanvasSource 'resizes' the canvas when width/resolution rounding differs by a hair, which wipes it blank on some phones
+function canvasTex(c){const t=new PIXI.Texture({source:new PIXI.ImageSource({resource:c,resolution:TR})});TEX.push(t);return t}
 function mkTex(w,h,draw,ox=w/2,oy=h/2){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w*TR));c.height=Math.max(1,Math.ceil(h*TR));const g=c.getContext('2d',{willReadFrequently:true});g.setTransform(TR,0,0,TR,ox*TR,oy*TR);draw(g);return canvasTex(c)}
 function gT(key,w,h,draw,ox,oy){return TC[key]||(TC[key]=mkTex(w,h,draw,ox,oy))}
 function clearTex(){for(const t of TEX){try{t.destroy(true)}catch(e){}}TEX.length=0;for(const k in TC)delete TC[k]}
