@@ -421,7 +421,9 @@ function checkUnlock(){const n=S.unl+1,w=world(n);if(S.rb>=w.rb&&(S.bestW[n-1]||
 function target(proj){let best=null,by=-1e9,fb=null,fy=-1e9;for(const z of G.z){if(z.dead||z.y<-10||z.phase)continue;if(z.y>fy){fy=z.y;fb=z}if(proj&&z.hp-z.pend<=0)continue;if(z.y>by){by=z.y;best=z}}return proj?(best||fb):fb}
 // one turret (or one Apex barrel) aims and fires
 let CRC=.05,CRD=2;
-function shoot(src,T,rt,s,mm,rm,col,dt,id){const tz=target(T.k==='bullet'||T.k==='splash'||T.k==='slow');rt.flash-=dt;rt.rec=Math.max(0,rt.rec-dt*7);if(T.b>=4&&tz)rt.spin+=dt*28;
+// Apex barrels each take a different zombie (1st, 2nd, 3rd, 4th closest to the wall) so all four keep firing
+function targetN(n){const a=G.z.filter(z=>!z.dead&&z.y>=-10&&!z.phase).sort((p,q)=>q.y-p.y);return a.length?a[Math.min(n,a.length-1)]:null}
+function shoot(src,T,rt,s,mm,rm,col,dt,id,pick=null){const tz=pick!==null?pick:target(T.k==='bullet'||T.k==='splash'||T.k==='slow');rt.flash-=dt;rt.rec=Math.max(0,rt.rec-dt*7);if(T.b>=4&&tz)rt.spin+=dt*28;
  if(tz){const ta=Math.atan2(tz.y-s.y,tz.x-s.x);let da=ta-rt.a;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;rt.a+=da*Math.min(1,dt*14)}
  const sl=T.sl?Math.min(.92,T.sl*(1+.03*rl('eye'))*(1+.15*nc('f',0,'b'))):0;
  if(T.k==='beam'){if(tz){if(rt.bt!==tz){rt.bt=tz;rt.ramp=0}rt.ramp=Math.min(2,rt.ramp+dt);hurt(tz,T.d*mm*dt*(T.ramp?1+rt.ramp:1)*(1+CRC*(CRD-1)),src,'beam');if(sl){tz.slowT=.3;tz.slowF=Math.max(tz.slowF*(tz.slowT>0?1:0),sl)}if(Math.random()<dt*14)G.fx.push({t:'spark',x:tz.x+rnd(-4,4),y:tz.y+rnd(-4,4),vx:rnd(-60,60),vy:rnd(-60,60),l:.25,c:T.ramp?'#ffe9a0':'#9ff0ff'})}else rt.bt=null;return}
@@ -447,7 +449,7 @@ function sim(dt){
  for(const a of G.ac){a.y+=150*dt;a.x+=a.vx*dt;if(a.y>=BASEY&&!a.done){a.done=true;splat(a.x,BASEY-4,4,'#6a8a1a');for(let i=0;i<5;i++)G.fx.push({t:'part',x:a.x,y:BASEY,vx:rnd(-60,60),vy:rnd(-80,0),l:.4,c:'#9be22d',s:2.2});if(G.state==='run')baseHit(1,a.x)}}G.ac=G.ac.filter(a=>!a.done);
  const dm=dmgMult(),fr=(1+.03*rl('hand'))*(1+.15*nc('d',0,'a'));CRC=.05+.1*nc('d',1,'a');CRD=2+nc('d',1,'b');
  for(let i=0;i<SLOTS.length;i++){const it=S.slots[i];if(!it)continue;const T=TUR[it.t];shoot(i,T,RT[i],SLOTS[i],modMult(it)*dm*lvD(it)*(T.k==='beam'?lvR(it)*fr:1),lvR(it)*fr,it.m>=0?MODS[it.m].c:0,dt,it.t)}
- if(S.apex){const A=S.apex,mm=(A.m>=0?MODS[A.m].m:1)*dm*apexMult(A.n)*3;for(let k=0;k<4;k++){const T=TUR[A.r*4+k];shoot(20+k,T,RTA[k],{x:AX+AO[k][0],y:AY+AO[k][1]},mm*(T.k==='beam'?1.5*fr:1),1.5*fr,A.m>=0?MODS[A.m].c:0,dt,A.r*4+k)}}
+ if(S.apex){const picks=[0,1,2,3].map(targetN),A=S.apex,mm=(A.m>=0?MODS[A.m].m:1)*dm*apexMult(A.n)*3;for(const k of[0,1,2,3].sort((x,y)=>(TUR[A.r*4+x].k==='beam')-(TUR[A.r*4+y].k==='beam'))){const T=TUR[A.r*4+k];shoot(20+k,T,RTA[k],{x:AX+AO[k][0],y:AY+AO[k][1]},mm*(T.k==='beam'?1.5*fr:1),1.5*fr,A.m>=0?MODS[A.m].c:0,dt,A.r*4+k,picks[k])}}
  const P=Wd().z;
  for(const p of G.p){if(p.z&&!p.z.dead){p.tx=p.z.x;p.ty=p.z.y}const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),st=p.v*dt;p.px=p.x;p.py=p.y;
   if(d<=st+3){p.done=true;if(p.z)p.z.pend-=p.dmg;
