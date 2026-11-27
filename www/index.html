@@ -151,6 +151,13 @@ button{transition:transform .09s ease-out,filter .12s}button:active:not(:disable
 .t{transition:opacity .3s,transform .3s}.t.out{opacity:0;transform:translateY(-8px)}
 #mini.flip{animation:flip .45s cubic-bezier(.2,1.3,.4,1)}@keyframes flip{0%{transform:perspective(300px) rotateY(90deg) scale(1.15)}100%{transform:none}}
 .chip.pop{animation:cpop .25s ease-out}@keyframes cpop{40%{transform:scale(1.08)}}
+/* tablets: bigger UI in portrait; side-by-side layout in landscape */
+@media (min-width:700px) and (min-height:700px){#app{max-width:760px}#hud,#rollp,#autos,#tabs,#sin,#dlg .box,#toast,#coach{zoom:1.22}#sin{max-width:640px}}
+@media (orientation:landscape) and (min-width:700px){
+ #app{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) min(440px,42vw);grid-template-rows:auto auto 1fr auto auto auto;grid-template-areas:"stage hud" "stage next" "stage gap" "stage roll" "stage autos" "stage tabs"}
+ #hud{grid-area:hud;border-bottom:0;border-left:2px solid var(--rust)}#stage{grid-area:stage;min-height:0}#rollp{grid-area:roll;border-left:2px solid var(--rust)}#autos{grid-area:autos}#tabs{grid-area:tabs}
+ #rollp,#autos,#tabs,#hud{zoom:1}#sheet{justify-content:flex-end;align-items:stretch}#sin{width:min(440px,42vw);max-width:none;max-height:none;height:100%;border-radius:0;border-top:0;border-left:2px solid var(--rust)}
+ @keyframes sup{from{transform:translateX(60px);opacity:0}}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <div id="app">
@@ -241,7 +248,7 @@ const SLOTS=[];for(let i=0;i<32;i++)SLOTS.push({x:[38,100,260,322][i%4],y:502-Ma
 
 /* ---------- state ---------- */
 const KEY='turretRollDefense_v1';
-const SETD={compat:0,vib:1,master:80,sfx:100,music:70,res:'auto',cap:60,fps:0,dmg:1,cash:1,shake:1,gore:1,dps:'off',badges:1};
+const SETD={wskip:1,notif:1,compat:0,vib:1,master:80,sfx:100,music:70,res:'auto',cap:60,fps:0,dmg:1,cash:1,shake:1,gore:1,dps:'off',badges:1};
 function fresh(){return{name:'Survivor',time:0,earned:0,set:Object.assign({},SETD),money:50,gems:0,wave:1,rb:0,world:0,unl:0,bestW:[0],sk:{d:0,l:0,m:0},slots:startSlots(),
  g:{ar:0,ab:0,flt:0,spd:0,arb:0,off:0},autoRoll:1,autoBuy:1,autoRb:0,fMin:0,spdSel:0,lp:0,mp:0,guar:0,rate:0,last:Date.now(),kills:0,roll:null,asc:0,shards:0,perk:{},apex:null,relics:{}}}
 function startSlots(){const s=Array(NS).fill(null);s[0]={t:0,m:-1,lv:0,dp:0};return s}
@@ -253,7 +260,7 @@ function save(){S.last=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S)
 const Wd=()=>world(S.world);
 const dmgMult=()=>(1+.12*S.sk.d)*Math.pow(1.25,Math.floor(S.sk.d/10))*ascMult()*Math.pow(1.15,pk('dmg'))*(1+.05*rl('heart'));
 const luck=()=>(1+.06*S.sk.l)*Math.pow(1.15,Math.floor(S.sk.l/10))*(1+.1*S.rb)*Wd().lu*(S.lp3>0?3:S.lp>0?2:1)*Math.pow(1.1,pk('luck'))*(1+.03*rl('skull'));
-const moneyMult=()=>(1+.1*S.sk.m)*Math.pow(1.25,Math.floor(S.sk.m/10))*(1+.25*S.rb)*Wd().mo*(S.mp3>0?3:S.mp>0?2:1)*ascMult()*Math.pow(1.15,pk('money'))*(1+.05*rl('tooth'));
+const moneyMult=()=>(1+.1*S.sk.m)*Math.pow(1.25,Math.floor(S.sk.m/10))*(1+.25*S.rb)*Wd().mo*(S.mp3>0?3:S.mp>0?2:1)*ascMult()*Math.pow(1.15,pk('money'))*(1+.05*rl('tooth'))*(bloodOn()?3:1);
 const SK={d:{n:'Damage',c:'#ff5c5c',base:40,g:1.55,eff:l=>'+'+Math.round(((1+.12*l)*Math.pow(1.25,Math.floor(l/10))-1)*100)+'% damage'},
  l:{n:'Luck',c:'#5fd36b',base:75,g:1.6,eff:l=>'+'+Math.round(((1+.06*l)*Math.pow(1.15,Math.floor(l/10))-1)*100)+'% luck'},
  m:{n:'Money',c:'#ffc940',base:50,g:1.55,eff:l=>'+'+Math.round(((1+.1*l)*Math.pow(1.25,Math.floor(l/10))-1)*100)+'% money'},
@@ -419,21 +426,22 @@ let RT=SLOTS.map((s,i)=>({cd:rnd(0,.5),a:s.x<LX?0:Math.PI,flash:0,bt:null,ramp:0
 const RTA=[0,1,2,3].map(()=>({cd:rnd(0,.5),a:-Math.PI/2,flash:0,bt:null,ramp:0,rec:0,spin:0}));
 const AX=180,AY=575,AO=[[-11,-8],[11,-8],[-11,8],[11,8]];
 const isBoss=()=>G.ch&&G.ch.type==='boss'?true:chR('boss5')?S.wave%5===0:S.wave%10===0;
-function zhp(){return 8*Math.pow(1.12,S.wave-1)*Wd().hp}
+function zhp(){return 8*Math.pow(1.12,S.wave-1)*Wd().hp*(bloodOn()?2:1)}
 function zval(){return 2*Math.pow(1.1,S.wave-1)}
 // zombie types: hp mult, speed, radius, base damage, money mult + special rules
 const ZT={n:{hp:1,sp:32,r:10,d:1,v:1},fast:{hp:.6,sp:55,r:8.5,d:1,v:1.1},tank:{hp:2.6,sp:22,r:13,d:2,v:2},boss:{hp:22,sp:17,r:22,d:10,v:30},
  armored:{hp:1.6,sp:26,r:11,d:2,v:1.8,arm:.35},shielded:{hp:1.2,sp:26,r:11,d:1,v:1.8,sh:.9},healer:{hp:1.3,sp:28,r:10,d:1,v:2},splitter:{hp:1.8,sp:25,r:12,d:1,v:1.5},
- ghost:{hp:1,sp:34,r:10,d:1,v:1.6},jammer:{hp:1.5,sp:24,r:11,d:2,v:2.5},leech:{hp:1.3,sp:28,r:10,d:1,v:2.2},spitter:{hp:1.4,sp:30,r:10,d:1,v:1.8},swarm:{hp:.22,sp:62,r:6.5,d:1,v:.35},mini:{hp:.3,sp:50,r:7,d:1,v:.3}};
-const ZN={jammer:'Jammer',leech:'Leech',armored:'Armored',shielded:'Shielded',healer:'Healer',splitter:'Splitter',ghost:'Ghost',spitter:'Spitter',swarm:'Swarm'};
-function pickType(){const w=S.wave+S.world*15,o=[['n',10]];if(w>=5)o.push(['fast',4]);if(w>=8)o.push(['tank',2.5],['swarm',1]);if(w>=10)o.push(['splitter',1.4]);if(w>=12)o.push(['armored',2]);if(w>=15)o.push(['shielded',1.6]);if(w>=18)o.push(['healer',1]);if(w>=22)o.push(['ghost',1.4]);if(w>=25)o.push(['spitter',1.1]);if(S.world>=4)o.push(['jammer',1.1],['leech',1]);
+ ghost:{hp:1,sp:34,r:10,d:1,v:1.6},jammer:{hp:1.5,sp:24,r:11,d:2,v:2.5},leech:{hp:1.3,sp:28,r:10,d:1,v:2.2},spitter:{hp:1.4,sp:30,r:10,d:1,v:1.8},gold:{hp:6,sp:78,r:9,d:0,v:0},swarm:{hp:.22,sp:62,r:6.5,d:1,v:.35},mini:{hp:.3,sp:50,r:7,d:1,v:.3}};
+const ZN={gold:'Golden zombie',jammer:'Jammer',leech:'Leech',armored:'Armored',shielded:'Shielded',healer:'Healer',splitter:'Splitter',ghost:'Ghost',spitter:'Spitter',swarm:'Swarm'};
+function pickType(){if(G.ch&&G.ch.type==='horde'){const r=Math.random();return r<.55?'swarm':r<.85?'fast':'n'}const w=S.wave+S.world*15,o=[['n',10]];if(w>=5)o.push(['fast',4]);if(w>=8)o.push(['tank',2.5],['swarm',1]);if(w>=10)o.push(['splitter',1.4]);if(w>=12)o.push(['armored',2]);if(w>=15)o.push(['shielded',1.6]);if(w>=18)o.push(['healer',1]);if(w>=22)o.push(['ghost',1.4]);if(w>=25)o.push(['spitter',1.1]);if(S.world>=4)o.push(['jammer',1.1],['leech',1]);
  let x=Math.random()*o.reduce((a,b)=>a+b[1],0);for(const[t,v]of o){if(x<v)return t;x-=v}return'n'}
-function startWave(){if(G.ch&&G.ch.type==='time'&&G.ch.t<=0)return;G.z=[];G.p=[];G.ac=[];G.maxhp=Math.round((20+2*rl('sandbag')+5*nc('f',0,'a'))*(1+.04*(S.sk.f||0))*Math.pow(1.25,Math.floor((S.sk.f||0)/10))*(S.g.wall?3:1));const n=Math.min(8+Math.floor(S.wave*1.1),45);G.left=isBoss()?Math.ceil(n/2)+1:n;G.int=Math.max(.35,1-S.wave*.01);G.st=.3;if(chR('glass'))G.maxhp=Math.max(1,Math.round(G.maxhp/3));if(G.ch&&G.ch.type==='boss')G.left=4;if(G.ch&&G.ch.type==='time')G.int*=.5;G.hp=G.ch&&G.ch.hp!=null?Math.min(G.ch.hp,G.maxhp):G.maxhp;G.state='run'}
-function mkZ(ty,x,y,hpMul=1){const P=ZT[ty],pool=VAR[ty]||VAR.swarm,vr=pool[Math.random()*pool.length|0],hp=zhp()*P.hp*hpMul;
+function startWave(){if(G.ch&&G.ch.type==='time'&&G.ch.t<=0)return;G.z=[];G.p=[];G.ac=[];G.maxhp=Math.round((20+2*rl('sandbag')+5*nc('f',0,'a'))*(1+.04*(S.sk.f||0))*Math.pow(1.25,Math.floor((S.sk.f||0)/10))*(S.g.wall?3:1));const n=Math.min(8+Math.floor(S.wave*1.1),45);G.left=isBoss()?Math.ceil(n/2)+1:n;G.int=Math.max(.35,1-S.wave*.01);G.st=.3;if(chR('glass'))G.maxhp=Math.max(1,Math.round(G.maxhp/3));if(G.ch&&G.ch.type==='boss')G.left=4;if(G.ch&&G.ch.type==='time')G.int*=.5;if(G.ch&&G.ch.type==='horde'){G.int*=.35;G.left=Math.round(G.left*1.5)}G.wst=G.tm||0;
+ if(G.ch&&G.ch.type==='wboss'){G.left=0;const W=S.wb,z=mkZ('boss',LX,130);z.hp=z.max=Math.max(1,W.hp-W.dmg);z.spd=0;z.sc=2.1;z.r*=2.1;z.wb=1;z.val=0;z.atk=5;G.z.push(z);sfx('roar');G.shake=.6;punch(.05)}G.hp=G.ch&&G.ch.hp!=null?Math.min(G.ch.hp,G.maxhp):G.maxhp;G.state='run'}
+function mkZ(ty,x,y,hpMul=1){const P=ZT[ty],pool=ty==='gold'?VAR.fast:VAR[ty]||VAR.swarm,vr=pool[Math.random()*pool.length|0],hp=zhp()*P.hp*hpMul;
  const z={x,y,hp,max:hp,spd:P.sp*rnd(.92,1.08),r:P.r,dmg:P.d,val:zval()*P.v,ty,flash:0,slowT:0,slowF:0,pend:0,ph:rnd(0,7),vr,cloth:vr.cloth,sc:1};
  if(P.sh)z.sh=z.shMax=hp*P.sh;if(ty==='ghost')z.gt=rnd(0,2.4);if(ty==='spitter'){z.stop=rnd(330,410);z.spT=1.5}if(ty==='healer')z.hT=rnd(0,.5);
  if(chR('fast'))z.spd*=1.4;
- if(!['boss','swarm','mini'].includes(ty)&&S.wave+S.world*15>=20&&Math.random()<Math.min(.25,.04+S.wave*.0015)*(S.world>=4?1.6:1)*(chR('elite')?4:1)){const e=ELS[Math.random()*ELS.length|0];z.el=e;z.val*=3;applyEl(z,e);
+ if(!['boss','swarm','mini','gold'].includes(ty)&&S.wave+S.world*15>=20&&Math.random()<Math.min(.25,.04+S.wave*.0015)*(S.world>=4?1.6:1)*(chR('elite')?4:1)){const e=ELS[Math.random()*ELS.length|0];z.el=e;z.val*=3;applyEl(z,e);
   // Void elites can roll a second modifier
   if(S.world>=4&&Math.random()<.35){const o=ELS.filter(x=>x!==e),e2=o[Math.random()*o.length|0];z.el2=e2;z.val*=2;applyEl(z,e2)}}
  return z}
@@ -447,25 +455,27 @@ function hurt(z,a,src=-1,k=''){if(z.dead||z.phase)return;if(z.ty==='boss')a*=(1+
  if(z.sh>0){const m=(k==='splash'||k==='pierce')?3:1,ab=Math.min(z.sh,a*m);z.sh-=ab;a-=ab/m;if(src>=0)DMG[src]+=ab/m;
   if(z.sh<=0){z.sh=0;for(let i=0;i<8;i++)G.fx.push({t:'part',x:z.x,y:z.y+10,vx:rnd(-90,90),vy:rnd(-60,90),l:.5,c:'#8fa8c8',s:2.6})}if(a<=0){z.flash=.04;return}}
  if(ZT[z.ty].arm&&k!=='splash'&&k!=='pierce')a*=ZT[z.ty].arm;if(z.ic&&k!=='splash'&&k!=='pierce')a*=.4;
- const real=Math.min(a,z.hp);if(src>=0)DMG[src]+=real;if(S.set.dmg)z.dn=(z.dn||0)+real;z.hp-=a;z.flash=.08;if(z.hp<=0){z.dead=true;kill(z)}}
+ const real=Math.min(a,z.hp);if(z.wb&&G.ch)G.ch.dmg+=real;if(src>=0)DMG[src]+=real;if(S.set.dmg)z.dn=(z.dn||0)+real;z.hp-=a;z.flash=.08;if(z.hp<=0){z.dead=true;kill(z)}}
 function splat(x,y,r,col){if(!S.set.gore)return;decDirty=true;dctx.fillStyle=col;for(let i=0;i<6;i++){const a=rnd(0,6.28),d=rnd(0,r);dctx.globalAlpha=rnd(.5,.85);circ(dctx,x+Math.cos(a)*d,y+Math.sin(a)*d,r*rnd(.3,.7))}for(let i=0;i<10;i++){const a=rnd(0,6.28),d=r*rnd(1.2,2.8);circ(dctx,x+Math.cos(a)*d,y+Math.sin(a)*d,rnd(.4,1.3))}dctx.globalAlpha=1}
 function scorch(x,y,r){decDirty=true;const g=dctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');dctx.fillStyle=g;circ(dctx,x,y,r)}
 function gore(x,y,n,sp){if(!S.set.gore)return;const P=Wd().z;for(let i=0;i<n;i++)G.fx.push({t:'part',x,y,vx:rnd(-sp,sp),vy:rnd(-sp,sp),l:rnd(.3,.7),c:i%3?P.blood:P.skin2,s:rnd(1.3,3.2)})}
 let earnWin=0,earnT=0,popT=0;
 function kill(z){if(z.poi>0){let n=0;for(const o of G.z){if(n>=2||o.dead||o===z)continue;if(Math.hypot(o.x-z.x,o.y-z.y)<70){o.poi=Math.max(o.poi||0,Math.ceil(z.poi/2));o.poiT=4;o.poiD=z.poiD;o.poiS=z.poiS;n++}}if(n)G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:70,l:.4,L:.4,c:'#8dff3a'})}
 const v=z.val*moneyMult()*(z.ty==='boss'?1+.5*nc('m',0,'a'):1)*(z.el?1+nc('m',0,'b'):1);S.money+=v;earnWin+=v;S.kills++;const P=Wd().z,boss=z.ty==='boss';
- S.earned+=v;if(G.ch&&G.ch.type==='time')G.ch.score++;if(z.dn>0){G.fx.push({t:'text',x:z.x+8,y:z.y-4,s:fmt(z.dn),l:.6,c:'#ffffff',sm:1});z.dn=0}if(G.fx.length<160&&S.set.cash){G.fx.push({t:'text',x:z.x,y:z.y-10,s:'+'+fmt(v),l:.8,c:'#ffcf3a'});G.fx.push({t:'coin',x:z.x,y:z.y,sx:z.x,sy:z.y,l:.7,L:.7})}
+ S.earned+=v;if(G.ch&&(G.ch.type==='time'||G.ch.type==='horde'))G.ch.score++;if(z.dn>0){G.fx.push({t:'text',x:z.x+8,y:z.y-4,s:fmt(z.dn),l:.6,c:'#ffffff',sm:1});z.dn=0}if(G.fx.length<160&&S.set.cash){G.fx.push({t:'text',x:z.x,y:z.y-10,s:'+'+fmt(v),l:.8,c:'#ffcf3a'});G.fx.push({t:'coin',x:z.x,y:z.y,sx:z.x,sy:z.y,l:.7,L:.7})}
  gore(z.x,z.y,boss?40:9,boss?140:85);splat(z.x,z.y,z.r*(boss?1.3:.8),P.blood);
   if(S.set.gore&&G.fx.length<220){const nc2=boss?18:Q>=1?5:3,cols=[P.skin,P.skin2,P.blood,z.cloth||P.skin2];for(let i=0;i<nc2;i++){const a=rnd(0,6.283),sp=rnd(60,boss?240:150);G.fx.push({t:'chunk',x:z.x,y:z.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,a:rnd(0,6),va:rnd(-14,14),l:rnd(.7,1.3)*(boss?1.6:1),L:1.3*(boss?1.6:1),c:cols[i%4],s:rnd(2,boss?5:3.6)})}}
  if(S.set.gore&&z.ty!=='swarm'&&z.ty!=='mini')G.corpses.push({vr:z.vr,x:z.x,y:z.y,a:rnd(-.7,.7)+(Math.random()<.5?0:Math.PI),r:z.r,cloth:z.cloth,l:boss?8:4.5,L:boss?8:4.5,boss});if(G.corpses.length>28)G.corpses.shift();
  sfx('squish');
- if(z.ty==='splitter'){for(let k=0;k<3;k++)G.z.push(mkZ('mini',z.x+rnd(-12,12),z.y+rnd(-8,8)));G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:26,l:.3,L:.3,c:'#b6d25a'})}
+ if(z.ty==='gold'){const bag=Math.max(S.rate*90,zval()*40*moneyMult()),gm=1+(Math.random()*3|0);S.money+=bag;S.earned+=bag;S.gems+=gm;toast(`Golden zombie! +${fmt(bag)} and +${gm} gems`);sfx('buy');punch(.03);G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:70,l:.5,L:.5,c:'#ffd34a'});for(let i=0;i<14&&G.fx.length<230;i++)G.fx.push({t:'coin',x:z.x,y:z.y,sx:z.x+rnd(-20,20),sy:z.y+rnd(-20,20),l:.6+i*.03,L:.6+i*.03})}
+  if(z.ty==='splitter'){for(let k=0;k<3;k++)G.z.push(mkZ('mini',z.x+rnd(-12,12),z.y+rnd(-8,8)));G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:26,l:.3,L:.3,c:'#b6d25a'})}
  if(boss){S.st.bosses++;if(G.ch&&G.ch.type==='boss')G.ch.score++;let gm=G.ch?0:Math.floor(S.wave/10);if(Math.random()<Math.min(1,.05*rl('fang')))gm++;S.gems+=gm;G.shake=.6;punch(.06,.75);sfx('boom',80);for(let i=0;i<3;i++)G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:60+i*50,l:.4+i*.15,L:.4+i*.15,c:i?'#ff5a1a':'#ffffff'});toast(G.ch?`${Wd().boss} slain!`:`${Wd().boss} slain! +${gm} gem${gm>1?'s':''}`);G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:100,l:.5,L:.5,c:'#ffffff'});G.fx.push({t:'boom',x:z.x,y:z.y,R:70,l:.5,L:.5});
-  if(!G.ch&&Math.random()<Math.min(.6,.3+S.wave*.002)){const RP=RELICS.filter(r=>!r[3]),R=RP[Math.random()*RP.length|0];S.relics[R[0]]=(S.relics[R[0]]||0)+1;setTimeout(()=>{sfx('level');toast(`Relic: ${R[1]} (Lv ${S.relics[R[0]]}) · ${R[2]}`)},700)}}}
+  if(!G.ch&&Math.random()<Math.min(.9,(.3+S.wave*.002)*(bloodOn()?2:1))){const RP=RELICS.filter(r=>!r[3]),R=RP[Math.random()*RP.length|0];S.relics[R[0]]=(S.relics[R[0]]||0)+1;setTimeout(()=>{sfx('level');toast(`Relic: ${R[1]} (Lv ${S.relics[R[0]]}) · ${R[2]}`)},700)}}}
 function hurtFlash(){const s=$('#stage');s.classList.remove('hurt');void s.offsetWidth;s.classList.add('hurt')}
 function baseHit(n,x){G.hp-=n;G.shake=Math.max(G.shake,.2);sfx('thud');hurtFlash();splat(x,BASEY,6,Wd().z.blood);if(G.fx.length<220){for(let i=0;i<7;i++)G.fx.push({t:'chunk',x:x+rnd(-6,6),y:BASEY+6,vx:rnd(-70,70),vy:rnd(-130,-40),a:rnd(0,6),va:rnd(-12,12),l:rnd(.4,.8),L:.8,c:i%2?'#5b4d36':'#8a8d92',s:rnd(1.8,3.2)});for(let i=0;i<3;i++)G.fx.push({t:'smoke',x:x+rnd(-8,8),y:BASEY+4,r:rnd(4,7),g:rnd(12,22),vx:rnd(-10,10),vy:rnd(-22,-8),l:rnd(.6,1),L:1})}if(G.hp<=0&&G.ch){G.hp=0;endCh(false);return}if(G.hp<=0){G.z=[];G.p=[];G.ac=[];G.state='break';G.bt=1.6;toast(`Wave ${S.wave} overrun — retrying`);G.hp=0}}
-function leak(z){z.dead=true;baseHit(z.dmg,z.x)}
-function waveClear(){if(G.ch){chWave();return}S.wave++;S.bestW[S.world]=Math.max(S.bestW[S.world]||0,S.wave-1);checkUnlock();G.state='break';G.bt=1.1;if(isBoss())toast(`Boss wave! ${Wd().boss} approaches`)}
+function leak(z){z.dead=true;if(z.ty==='gold'){toast('The golden zombie got away!');return}if(z.wb)return;baseHit(z.dmg,z.x)}
+function waveClear(){if(G.ch){chWave();return}const dur=(G.tm||0)-(G.wst||0);S.wave++;
+ if(S.set.wskip!==0&&dur>0&&dur<6&&G.hp>=G.maxhp){const want=Math.min(4,Math.floor(6/Math.max(1,dur))-1);let sk=0,earn=0;while(sk<want&&S.wave%10!==0){const w=S.wave,n=Math.min(8+Math.floor(w*1.1),45);earn+=n*2*Math.pow(1.1,w-1)*1.2*moneyMult();S.wave++;sk++}if(sk){S.money+=earn;S.earned+=earn;toast(`Wave skip! +${sk} wave${sk>1?'s':''} · +${fmt(earn)}`)}}S.bestW[S.world]=Math.max(S.bestW[S.world]||0,S.wave-1);checkUnlock();G.state='break';G.bt=1.1;if(isBoss())toast(`Boss wave! ${Wd().boss} approaches`)}
 function checkUnlock(){const n=S.unl+1,w=world(n);if(S.rb>=w.rb&&(S.bestW[n-1]||0)>=w.wv){S.unl=n;toast(`New world unlocked: ${w.n}!`);dot()}}
 function target(proj){let best=null,by=-1e9,fb=null,fy=-1e9;for(const z of G.z){if(z.dead||z.y<-10||z.phase)continue;if(z.y>fy){fy=z.y;fb=z}if(proj&&z.hp-z.pend<=0)continue;if(z.y>by){by=z.y;best=z}}return proj?(best||fb):fb}
 // one turret (or one Apex barrel) aims and fires
@@ -501,13 +511,14 @@ function shoot(src,T,rt,s,mm,rm,col,dt,id,pick=null){if(rt.jam>0){rt.jam-=dt;rt.
  else if(T.k==='pierce'){sfx('rail');for(const z of G.z){if(z.dead)continue;const dx=z.x-s.x,dy=z.y-s.y,tt=dx*ux+dy*uy;if(tt<0)continue;if(Math.abs(dx*uy-dy*ux)<z.r+(T.wide||7)){const frz=z.slowT>0||z.stunT>0;hurt(z,dmg*(T.shat&&frz?T.shat:1),src,'pierce');if(sl&&!z.dead){z.slowT=1.5;z.slowF=Math.max(z.slowF,sl)}if(T.shat&&frz&&G.fx.length<220)for(let i=0;i<4;i++)G.fx.push({t:'part',x:z.x,y:z.y,vx:rnd(-110,110),vy:rnd(-110,110),l:.4,c:'#e8fbff',s:2.4});gore(z.x,z.y,3,70)}}
   G.fx.push({t:'line',x1:mx,y1:my,x2:s.x+ux*800,y2:s.y+uy*800,l:T.wide?.35:.2,L:T.wide?.35:.2,c:T.lc||(T.r>=4?'#ffe066':T.r>=3?'#b97cff':KC.pierce),w:T.wide?14:T.r>=3?6:4});if(T.wide)G.shake=Math.max(G.shake,.25)}
  else{tz.pend+=dmg;G.p.push({src,x:mx,y:my,px:mx,py:my,z:tz,tx:tz.x,ty:tz.y,v:T.k==='splash'?300:560,dmg,k:T.k==='drone'?'bullet':T.k,id,ar:T.ar?T.ar*(1+.04*rl('keg')):0,sl,r:T.k==='splash'?(T.r>=3?6:4):2.2,c:col||T.pc||KC[T.k],pc:T.pc,stun:T.stun?T.stun*(1+.08*rl('frost')):0,poi:T.poi?T.d*mm*T.poi:0,exe:T.exe||0})}}
-function sim(dt){G.tm=(G.tm||0)+dt;if(G.ch&&G.ch.type==='time'){G.ch.t-=dt;if(G.ch.t<=0){endCh(true);return}}
+function sim(dt){G.tm=(G.tm||0)+dt;if(G.ch&&(G.ch.type==='time'||G.ch.type==='wboss')){G.ch.t-=dt;if(G.ch.t<=0){endCh(true);return}}
  if(G.state==='run'){if(G.left>0){G.st-=dt;if(G.st<=0){spawn();G.left--;G.st=G.int}}else if(!G.z.length)waveClear()}
  else{G.bt-=dt;if(G.bt<=0)startWave()}
  for(const z of G.z){if(z.dead)continue;if(z.slowT>0)z.slowT-=dt;
   if(z.burnT>0){z.burnT-=dt;hurt(z,z.burnD*dt,z.burnS,'dot');if(Math.random()<dt*10&&G.fx.length<220)G.fx.push({t:'part',x:z.x+rnd(-6,6),y:z.y+rnd(-6,6),vx:rnd(-10,10),vy:-40,l:.35,c:Math.random()<.5?'#ffb030':'#ff5a10',s:2.2});if(z.dead)continue}
   if(z.poi>0){z.poiT-=dt;hurt(z,z.poiD*z.poi*dt,z.poiS,'dot');if(z.poiT<=0)z.poi=0;if(Math.random()<dt*6&&G.fx.length<220)G.fx.push({t:'part',x:z.x+rnd(-7,7),y:z.y+rnd(-7,7),vx:0,vy:-18,l:.5,c:'#8dff3a',s:2});if(z.dead)continue}
   if(z.wd){z.slowT=0;z.stunT=0}
+  if(z.wb){z.slowT=0;z.stunT=0;z.atk-=dt;if(z.atk<=0){z.atk=6;G.shake=.5;sfx('boom',90);G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:260,l:.6,L:.6,c:'#ff3030'});const own=SLOTS.map((q,i)=>i).filter(i=>S.slots[i]);for(let k=0;k<3&&own.length;k++){const i=own.splice(Math.random()*own.length|0,1)[0];RT[i].jam=1.5;RT[i].bt=null}}}
   // Jammer: EMP pulse knocks out the 2 nearest turrets for 2s
   if(z.ty==='jammer'&&z.y>15){z.jT=(z.jT??rnd(1,3))-dt;if(z.jT<=0){z.jT=4;const nb=SLOTS.map((q,i)=>[i,Math.hypot(q.x-z.x,q.y-z.y)]).filter(q=>S.slots[q[0]]&&q[1]<170).sort((a,b)=>a[1]-b[1]).slice(0,2);for(const[i]of nb){RT[i].jam=2;RT[i].bt=null}G.fx.push({t:'ring',x:z.x,y:z.y,r:0,R:170,l:.5,L:.5,c:'#5ee8ff'});if(nb.length)sfx('rail')}}
   const stun=z.stunT>0;if(stun)z.stunT-=dt;
@@ -833,8 +844,9 @@ function gpuDraw(t,rdt){const wi=Math.min(S.world,4),Pz=Wd().z;for(const k in P_
  for(const z of G.z){const vr=z.vr;if(!vr)continue;const w=t*z.spd*.22+z.ph,f=Math.floor(((w/6.283)%1+1)%1*ZF)%ZF,rot=Math.sin(w)*.14,s=vr.r/10*1.3*(z.sc||1),sr=Math.sin(rot);if(z.phase&&!z.vr)continue;
   if(z.el){let q=P_.zomb.get(gl,z.x,z.y);q.tint=ELC[z.el];q.alpha=.5;q.scale.set(z.r*2.6/32);if(z.el2){q=P_.zomb.get(gl,z.x,z.y);q.tint=ELC[z.el2];q.alpha=.45;q.scale.set(z.r*3.6/32)}}
    if(z.ty==='leech'&&z.y>0){for(let i=0;i<NS;i++){const q=SLOTS[i];if(S.slots[i]&&Math.hypot(q.x-z.x,q.y-z.y)<120)lg.moveTo(z.x,z.y).lineTo(q.x,q.y).stroke({width:1.4,color:'#c060ff',alpha:.35+.2*Math.sin(t*8+i)})}}
-  if(z.ty==='healer'){const q=P_.light.get(gl,z.x,z.y);q.tint='#5aff6a';q.alpha=.18+.08*Math.sin(t*4);q.scale.set(60/32)}
-  const sp=P_.zomb.get(zTex(vr,f),z.x,z.y);sp.rotation=rot;sp.scale.set(z.sc||1);if(z.phase)sp.alpha=.25;else if(z.ty==='ghost')sp.alpha=.75;if(z.flash>0)sp.tint=0xff6a5a;else if(z.stunT>0)sp.tint=0x8ff8ff;else if(z.poi>0)sp.tint=0xb0ff80;else if(z.burnT>0)sp.tint=0xffb070;else if(z.slowT>0)sp.tint=0x9fdcff;
+  if(z.ty==='gold'){const q=P_.light.get(gl,z.x,z.y);q.tint='#ffd34a';q.alpha=.55+.2*Math.sin(t*10);q.scale.set(30/32);if(Math.random()<.4&&G.fx.length<230)G.fx.push({t:'spark',x:z.x+rnd(-8,8),y:z.y+rnd(-8,8),vx:0,vy:-30,l:.3,c:'#fff2a0'})}
+   if(z.ty==='healer'){const q=P_.light.get(gl,z.x,z.y);q.tint='#5aff6a';q.alpha=.18+.08*Math.sin(t*4);q.scale.set(60/32)}
+  const sp=P_.zomb.get(zTex(vr,f),z.x,z.y);sp.rotation=rot;sp.scale.set(z.sc||1);if(z.phase)sp.alpha=.25;else if(z.ty==='ghost')sp.alpha=.75;if(z.flash>0)sp.tint=0xff6a5a;else if(z.ty==='gold')sp.tint=0xffd34a;else if(z.stunT>0)sp.tint=0x8ff8ff;else if(z.poi>0)sp.tint=0xb0ff80;else if(z.burnT>0)sp.tint=0xffb070;else if(z.slowT>0)sp.tint=0x9fdcff;
   if(z.sh>0){const q=P_.zomb.get(wTex('shield'),z.x+sr*-12*s,z.y+12*s*cr0(rot));q.rotation=rot;q.scale.set(s/1.3)}
   const cr=Math.cos(rot),boss=z.ty==='boss',er=boss?2.2*s:1.8*s;
   if(!z.phase)for(const ex of[-2,2]){const x=z.x+(ex*s*cr-6*s*sr),y=z.y+(ex*s*sr+6*s*cr);const g=P_.light.get(gl,x,y);g.tint=Pz.eye;g.alpha=.55;g.scale.set(er*1.9/32);const d=P_.light.get(wTex('disc'),x,y);d.tint=Pz.eye;d.scale.set(er*.38/8)}
@@ -888,6 +900,7 @@ function gpuDraw(t,rdt){const wi=Math.min(S.world,4),Pz=Wd().z;for(const k in P_
    if(stg>=2){const fs=WALLF.slice(0,stg===3?6:3);for(let k=0;k<fs.length;k++){const[fx,fy]=fs[k],fl=.7+.2*Math.sin(t*11+k*3)+.1*Math.sin(t*27+k);let q=P_.ambA.get(gl,fx,fy-3);q.tint='#ff6a1a';q.alpha=.6*fl;q.scale.set(16*fl/32);q=P_.ambA.get(gl,fx,fy-4);q.tint='#ffe08a';q.alpha=.9*fl;q.scale.set(5/32);
     if(Math.random()<rdt*(stg===3?5:2.5)&&G.fx.length<230)G.fx.push(Math.random()<.5?{t:'smoke',x:fx+rnd(-3,3),y:fy-4,r:rnd(3,5),g:rnd(10,18),vx:rnd(-6,6),vy:rnd(-26,-14),l:rnd(.8,1.3),L:1.3}:{t:'part',x:fx,y:fy-4,vx:rnd(-12,12),vy:-rnd(30,60),l:.5,c:Math.random()<.5?'#ffb030':'#ff5a10',s:1.5})}}
    if(stg===3&&Math.random()<rdt*1.5&&G.fx.length<230){const x=rnd(10,W-10);G.fx.push({t:'spark',x,y:BASEY+6,vx:rnd(-50,50),vy:-rnd(40,90),l:.3,c:'#ffd27a'})}}
+  if(bloodOn()){let q=P_.ambA.get(gl,300,46);q.tint='#ff1a1a';q.alpha=.55+.1*Math.sin(t);q.scale.set(110/32);q=P_.amb.get(wTex('disc'),300,46);q.tint='#9a0d0d';q.scale.set(24/8);q=P_.ambA.get(gl,296,42);q.tint='#ff6a4a';q.alpha=.5;q.scale.set(30/32)}vigS.tint=bloodOn()?0xff4040:0xffffff;
   grainS.visible=Q>=2;if(Q>=2)grainS.tilePosition.set(rnd(0,64)|0,rnd(0,64)|0);
  // per-turret DPS labels
  if(S.set.dps==='turret'||S.set.dps==='both')for(let i=0;i<SLOTS.length;i++){if(!S.slots[i])continue;const sl=SLOTS[i],q=P_.dtxt.get(fmt(DPSV[i]),sl.x,sl.y+25,8);q.tint='#ffd27a'}
@@ -942,7 +955,7 @@ function addDupe(it){const d=dupeInfo(it),o=d.o,s=SLOTS[d.i];S.money-=it.price;s
  G.fx.push({t:'ring',x:s.x,y:s.y,r:0,R:30,l:.4,L:.4,c:RAR[TUR[o.t].r].c});G.fx.push({t:'text',x:s.x,y:s.y-26,s:o.lv>=MAXLV?'MAX':`${o.dp}/${need(o.lv)}`,l:.9,c:'#ffffff'});S.roll=null;renderCard()}
 function passFilter(it){if(S.g.flt&&TUR[it.t].r<S.fMin)return false;const d=dupeInfo(it);if(d)return d.useful;return true}
 function buy(){if(G.ch)return;const it=S.roll;if(!it||rollAnim>0)return;if((S.extra||[]).length){if(!buyAll(false))toast('Not enough money');return}if(S.money<it.price)return;const d=dupeInfo(it);if(d){if(d.useful)addDupe(it);else toast('That turret is already max level');return}place(slotOf(it.t),it)}
-function autoStep(rdt){if(G.ch)return;if(rollAnim>0)return;
+function autoStep(rdt){if(G.ch)return;askT-=rdt;if(askT<=0){askT=.5;autoSkill()}if(rollAnim>0)return;
  if(S.g.ab&&S.autoBuy&&S.roll&&[S.roll,...(S.extra||[])].some(it=>S.money>=it.price&&passFilter(it))){buyAll(true);return}
  if(S.g.ar&&S.autoRoll){autoT-=rdt;if(autoT>0)return;autoT=Math.max(.2,.8*Math.pow(.92,pk('speed')));const r=S.roll;if(!r||![r,...(S.extra||[])].some(it=>S.money>=it.price)||(S.g.ab&&S.autoBuy&&![r,...(S.extra||[])].some(passFilter)))doRoll(true)}}
 
@@ -972,12 +985,12 @@ const DRULES=[['fast','Fast zombies','Zombies move 40% faster'],['glass','Glass 
 function dailyRules(){const d=today();let h=7;for(const c of d)h=(h*31+c.charCodeAt(0))>>>0;const n=DRULES.length,a=h%n,b=(a+1+(h>>>5)%(n-1))%n;return[DRULES[a][0],DRULES[b][0]]}
 function chR(k){return!!(G.ch&&G.ch.rules.includes(k))}
 const chBest=()=>Math.max(1,S.bestW[S.world]||0,S.wave);
-function chStart(type){const b=chBest();return type==='boss'?Math.max(10,Math.round(b*.5/10)*10):type==='time'?Math.max(1,Math.floor(b*.6)):Math.max(1,Math.floor(b*.5))}
-function startCh(type){if(G.ch)return;S.chBak={world:S.world,wave:S.wave,money:S.money};const st=chStart(type);
- G.ch={type,score:0,t:300,w0:st,goal:st+15,rules:type==='daily'?dailyRules():[]};S.wave=st;S.roll=null;S.extra=[];replaceMode=false;sel=-1;
+function chStart(type){const b=chBest();if(type==='wboss')return S.wave;if(type==='horde')return Math.max(1,Math.floor(b*.6));return type==='boss'?Math.max(10,Math.round(b*.5/10)*10):type==='time'?Math.max(1,Math.floor(b*.6)):Math.max(1,Math.floor(b*.5))}
+function startCh(type){if(G.ch)return;if(type==='horde'&&!isWknd()){toast('Horde night is only on weekends');return}if(type==='wboss'){const W=wbState();if(W.att>=3||W.done){toast('No tries left today');return}W.att++}S.chBak={world:S.world,wave:S.wave,money:S.money};const st=chStart(type);
+ G.ch={type,score:0,dmg:0,t:type==='wboss'?120:300,w0:st,goal:st+15,rules:type==='daily'?dailyRules():[]};S.wave=st;S.roll=null;S.extra=[];replaceMode=false;sel=-1;
  G.z=[];G.p=[];G.ac=[];G.fx=[];G.state='break';G.bt=1.6;RT.forEach(r=>{r.bt=null;r.jam=0});RTA.forEach(r=>{r.bt=null});closeSheet();renderCard();sfx('roar');vibSeq([[0,'HEAVY'],[150,'HEAVY']]);save();
- toast(type==='boss'?'Boss rush! Every wave is a boss':type==='time'?'Timed survival: 5 minutes, go!':'Daily challenge: survive 15 waves')}
-function chWave(){const c=G.ch;S.wave+=c.type==='boss'?2:1;c.hp=G.hp;if(c.type==='daily'&&S.wave>=c.goal){endCh(true);return}G.state='break';G.bt=c.type==='time'?.35:1.1}
+ toast(type==='boss'?'Boss rush! Every wave is a boss':type==='time'?'Timed survival: 5 minutes, go!':type==='wboss'?`${S.wb.name} awakens! 2 minutes, hit it hard`:type==='horde'?'HORDE NIGHT! Endless swarms, one life':'Daily challenge: survive 15 waves')}
+function chWave(){const c=G.ch;if(c.type==='wboss'){endCh(true);return}if(c.type==='horde'){S.wave++;c.hp=G.hp;G.state='break';G.bt=.3;return}S.wave+=c.type==='boss'?2:1;c.hp=G.hp;if(c.type==='daily'&&S.wave>=c.goal){endCh(true);return}G.state='break';G.bt=c.type==='time'?.35:1.1}
 function unlockSkin(id,lines){if(S.skins[id])return;S.skins[id]=1;lines.push(`Apex skin unlocked: <b style="color:#ffd34a">${SKINS.find(k=>k.id===id).n}</b>`)}
 function endCh(win){const c=G.ch;if(!c)return;const reached=S.wave;G.ch=null;const b=S.chBak||{world:S.world,wave:1,money:S.money};S.chBak=null;
  S.world=b.world;S.wave=b.wave;S.money=b.money;G.z=[];G.p=[];G.ac=[];G.fx=[];G.state='break';G.bt=1.6;G.hp=G.maxhp;RT.forEach(r=>{r.bt=null;r.jam=0});RTA.forEach(r=>{r.bt=null});
@@ -987,6 +1000,8 @@ function endCh(win){const c=G.ch;if(!c)return;const reached=S.wave;G.ch=null;con
   if(c.score>=10)unlockSkin('blood',L)}
  if(c.type==='time'){title=win?'Time!':'Overrun!';g=gm(Math.min(80,c.score/20));const pb=S.chb.time||0;L.push(`Zombies killed: <b>${c.score}</b>${c.score>pb?' · NEW BEST':''}`);
   if(c.score>pb){if(c.score>=100){addRelic('hourglass');L.push('Relic: <b>Cursed Hourglass</b> (+4% fire rate)')}S.chb.time=c.score}if(c.score>=400)unlockSkin('clock',L)}
+ if(c.type==='wboss'){const W=S.wb;W.dmg=Math.min(W.hp,W.dmg+c.dmg);const pc=wbPct();title=W.name;L.push(`Damage dealt: <b>${fmt(c.dmg)}</b> (${(c.dmg/W.hp*100).toFixed(1)}% of its health)`);L.push(`Total this week: <b>${pc.toFixed(1)}%</b> · ${3-W.att} tries left today`);for(const[m,n,f]of WBM)if(pc>=m&&!W.got.includes(m)){W.got.push(m);f();L.push(`Reward at ${m}%: <b style="color:#ffd34a">${n}</b>`)}if(pc>=100){W.done=1;L.push('<b style="color:#b5f05a">Defeated! A new boss arrives Monday.</b>')}}
+ if(c.type==='horde'){title='Horde night over';g=gm(Math.min(100,c.score/25));S.horde=(S.horde||[]).concat([{s:c.score,d:today()}]).sort((a,b)=>b.s-a.s).slice(0,10);const rk=S.horde.findIndex(e=>e.s===c.score&&e.d===today())+1;L.push(`Zombies killed: <b>${c.score}</b>${rk===1?' · NEW BEST':rk?` · #${rk} on your board`:''}`)}
  if(c.type==='daily'){title=win?'Daily challenge cleared!':'Daily challenge failed';if(!win)L.push(`You reached wave ${Math.max(0,reached-c.w0)} of 15. Try again any time today.`);
   else if(S.chb.dlast!==today()){S.chb.dlast=today();S.chb.dw=(S.chb.dw||0)+1;g=gm(25);L.push(`Daily wins: <b>${S.chb.dw}</b>`);if(S.chb.dw%7===0){S.crowns++;addRelic('crown');L.push('Relic: <b style="color:#ffd34a">Prestige Crown!</b> Tap a turret to use it')}if(S.chb.dw>=5)unlockSkin('vcrown',L)}
   else L.push('Already rewarded today. New rules tomorrow!')}
@@ -1011,6 +1026,10 @@ function skinsHTML(){let h=`<div class="box"><h3>Apex skins</h3><div class="sub"
  for(const K of SKINS){const own=skinOwned(K.id),on=(S.skin||'')===K.id;h+=`<div class="skc ${on?'on':''}"><canvas data-skc="${K.id}" width="144" height="144"></canvas><b>${K.n}</b>${on?'<span class="sub" style="color:#b5f05a">In use</span>':own?`<button class="btn" data-act="skin" data-k="${K.id}">Use</button>`:K.gem?`<button class="btn gemb" data-act="skin" data-k="${K.id}" ${S.gems<K.gem?'disabled':''}><span class="gemi"></span>${K.gem}</button>`:`<span class="sub">${K.how}</span>`}</div>`}
  return h+'</div></div>'}
 function chalHTML(){const dr=dailyRules(),done=S.chb.dlast===today();let h=`<div class="sub">Challenges use your current turrets, skills and Apex in ${Wd().n}. You can't roll or buy during one, and your run comes back exactly as it was when it ends.</div>`;
+ {const W=wbState(),left=Math.max(0,weekEnd()-Date.now()),dd=Math.floor(left/864e5),hh=Math.floor(left%864e5/36e5);h+=`<div class="box" style="border-color:#7d0c10"><h3 style="color:#ff6a6a">Weekly boss: ${W.name}</h3><div class="sub">One giant boss for the whole week. 3 tries a day, 2 minutes each, and your damage adds up. It stomps every 6s and jams 3 turrets. New boss in ${dd}d ${hh}h.</div>
+  <div class="hpbar" style="height:12px;margin-top:4px"><i style="width:${100-wbPct()}%;background:linear-gradient(90deg,#7d0c10,#e0242c)"></i></div><div class="sub">${(100-wbPct()).toFixed(1)}% health left · ${Math.max(0,3-W.att)} tries left today</div>
+  <div class="sub" style="color:#5ee8ff">${WBM.map(([m,n])=>`${W.got.includes(m)?'✓ ':''}${m}%: ${n}`).join(' · ')}</div><button class="btn go" style="margin-top:8px;width:100%" data-act="chs" data-k="wboss" ${G.ch||W.att>=3||W.done?'disabled':''}>${W.done?'Defeated!':W.att>=3?'Come back tomorrow':G.ch?'Challenge running':'Fight'}</button></div>`}
+ {const wk=isWknd(),hs=S.horde||[];h+=`<div class="box" style="border-color:#3f6b10"><h3 style="color:#b5f05a">Horde night ${wk?'· LIVE':''}</h3><div class="sub">${wk?'Endless swarms, faster every wave. One life. How many can you kill?':'Opens every Saturday and Sunday.'} 1 gem per 25 kills (max 100).</div>${hs.length?`<div class="stats" style="margin-top:4px">${hs.slice(0,5).map((e,i)=>`<span>#${i+1} · ${e.d}</span><span>${fmt(e.s)} kills</span>`).join('')}</div>`:'<div class="sub">No scores yet.</div>'}<button class="btn go" style="margin-top:8px;width:100%" data-act="chs" data-k="horde" ${G.ch||!wk?'disabled':''}>${wk?(G.ch?'Challenge running':'Start'):'Weekends only'}</button></div>`}
  const card=(k,n,d,rw)=>`<div class="box"><h3>${n}</h3><div class="sub">${d}</div><div class="sub" style="color:#5ee8ff;margin-top:5px">${rw}</div><button class="btn go" style="margin-top:8px;width:100%" data-act="chs" data-k="${k}" ${G.ch?'disabled':''}>${G.ch?'Challenge running':'Start'}</button></div>`;
  h+=card('boss','Boss rush',`Every wave is a boss, starting at wave ${chStart('boss')}. Each boss jumps 2 waves. One life.`,`2 gems per boss · Best: ${S.chb.boss||0}<br>New best (5+): Cursed Hourglass relic · 15/30/50/80 bosses: Prestige Crown · 10 bosses: Blood Moon skin`);
  h+=card('time','Timed survival',`5 minutes of nonstop waves from wave ${chStart('time')}. Kill as many as you can.`,`1 gem per 20 kills (max 80) · Best: ${S.chb.time||0}<br>New best (100+): Cursed Hourglass relic · 400 kills: Clockwork skin`);
@@ -1018,14 +1037,45 @@ function chalHTML(){const dr=dailyRules(),done=S.chb.dlast===today();let h=`<div
  return h}
 let nextH='';
 function nextLine(){let h;if(G.ch){const c=G.ch,m=Math.max(0,Math.ceil(c.t)),tl=Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
-  h=`<span><b style="color:#ff6a6a">${c.type==='boss'?'BOSS RUSH':c.type==='time'?'TIMED':'DAILY'}</b> · ${c.type==='boss'?c.score+' bosses':c.type==='time'?c.score+' kills · '+tl:'wave '+Math.max(0,S.wave-c.w0)+'/15'}</span><button data-q="quit">Quit</button>`}
+  h=`<span><b style="color:#ff6a6a">${{boss:'BOSS RUSH',time:'TIMED',daily:'DAILY',wboss:'WEEKLY BOSS',horde:'HORDE'}[c.type]}</b> · ${c.type==='boss'?c.score+' bosses':c.type==='time'?c.score+' kills · '+tl:c.type==='horde'?c.score+' kills · wave '+S.wave:c.type==='wboss'?(Math.min(100,(S.wb.dmg+c.dmg)/S.wb.hp*100)).toFixed(1)+'% · '+tl:'wave '+Math.max(0,S.wave-c.w0)+'/15'}</span><button data-q="quit">Quit</button>`}
  else{const n=S.unl+1,w=world(n),pw=world(n-1),bw=S.bestW[n-1]||0;h=`<span>Next <b>${w.n}</b>: wave ${Math.min(bw,w.wv)}/${w.wv}${S.rb<w.rb?` · ${S.rb}/${w.rb} rebirths`:` in ${pw.n}`}</span><button data-q="chal">Challenges</button>`}
  if(h!==nextH){nextH=h;$('#nextw').innerHTML=h}}
 $('#nextw').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;audio();if(b.dataset.q==='quit')ask('Quit the challenge?','You still get rewards for what you did so far.','Quit',()=>endCh(false));else openTab('chal')};
 
+/* ---------- phone notifications (Capacitor Local Notifications) ---------- */
+const LN=()=>window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.LocalNotifications;
+async function notifPerm(){const N=LN();if(!N)return false;try{let p=await N.checkPermissions();if(p.display!=='granted')p=await N.requestPermissions();return p.display==='granted'}catch(e){return false}}
+async function clearNotifs(){const N=LN();if(!N)return;try{await N.cancel({notifications:[{id:1},{id:2},{id:3},{id:4}]})}catch(e){}}
+async function schedNotifs(){const N=LN();if(!N||!S.set.notif)return;await clearNotifs();const now=Date.now(),L=[],capH=(S.g.o24?24:8)+2*nc('m',1,'b');
+ L.push({id:1,title:'Your turrets hit the offline limit',body:`${capH} hours of earnings are waiting. Come collect them!`,schedule:{at:new Date(now+capH*3600e3),allowWhileIdle:true}});
+ const d=new Date();d.setDate(d.getDate()+(S.chb&&S.chb.dlast===today()?1:d.getHours()>=19?1:0));d.setHours(d.getHours()>=19||S.chb.dlast===today()?10:19,0,0,0);if(+d>now+3600e3)L.push({id:2,title:'Daily challenge ready',body:'New rules, new rewards. Survive 15 waves for 25 gems.',schedule:{at:d,allowWhileIdle:true}});
+ if(S.wb&&S.wb.wk===weekId()&&!S.wb.done){const e=weekEnd()-24*3600e3;if(e>now)L.push({id:3,title:`${S.wb.name} leaves tomorrow`,body:`The weekly boss still has ${(100-wbPct()).toFixed(0)}% health. Finish it for a Prestige Crown!`,schedule:{at:new Date(e),allowWhileIdle:true}})}
+ if(isWknd()===false){const sat=new Date();sat.setDate(sat.getDate()+((6-sat.getDay()+7)%7||7));sat.setHours(18,0,0,0);L.push({id:4,title:'Horde night is live',body:'Endless swarms all weekend. Beat your best score!',schedule:{at:sat,allowWhileIdle:true}})}
+ try{await N.schedule({notifications:L})}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();schedNotifs()}else clearNotifs()});
+
+/* ---------- events: Blood Moon, Gold rush ---------- */
+const bloodOn=()=>!!(S.ev&&S.ev.k==='blood'&&!G.ch);
+function evTick(dt){if(G.ch||MENU||PAUSED)return;
+ if(S.ev){S.ev.t-=dt;if(S.ev.t<=0){S.ev=null;toast('The Blood Moon sets')}}
+ else{S.evCd=(S.evCd??rnd(900,1800))-dt;if(S.evCd<=0&&G.state==='run'){S.evCd=rnd(1500,2700);S.ev={k:'blood',t:600};sfx('roar');G.shake=.45;punch(.04);toast('BLOOD MOON! Zombies x2 health, x3 money for 10 minutes');if(S.set.vib)vibSeq([[0,'HEAVY'],[200,'HEAVY'],[420,'V']])}}
+ S.grCd=(S.grCd??rnd(240,480))-dt;if(S.grCd<=0&&G.state==='run'&&!G.z.some(z=>z.ty==='gold')){S.grCd=rnd(240,480);G.z.push(mkZ('gold',LX+rnd(-20,20),-20));toast('A GOLDEN ZOMBIE! Kill it before it escapes!');sfx('reveal',3,-1)}}
+
+/* ---------- weekly boss ---------- */
+const WBN=['The Rot King','Mother of Maggots','The Bone Colossus','Old Gutsack','The Hollow Titan','The Grave Warden'];
+const weekId=()=>Math.floor((Date.now()/864e5+3)/7),weekEnd=()=>((weekId()+1)*7-3)*864e5;
+const teamDPS=()=>{let d=0;for(const it of S.slots)if(it)d+=dps(it);return d};
+function wbState(){const w=weekId();if(!S.wb||S.wb.wk!==w)S.wb={wk:w,hp:Math.max(5e3,teamDPS()*120*10),dmg:0,att:0,day:'',got:[],name:WBN[w%WBN.length]};if(S.wb.day!==today()){S.wb.day=today();S.wb.att=0}return S.wb}
+const wbPct=()=>S.wb?Math.min(100,S.wb.dmg/S.wb.hp*100):0;
+const WBM=[[10,'15 gems',()=>S.gems+=15],[25,'a random relic',()=>{const RP=RELICS.filter(r=>!r[3]);addRelic(RP[Math.random()*RP.length|0][0])}],[50,'40 gems',()=>S.gems+=40],[75,'Cursed Hourglass',()=>addRelic('hourglass')],[100,'Prestige Crown + 100 gems',()=>{S.crowns++;addRelic('crown');S.gems+=100}]];
+const isWknd=()=>{const d=new Date().getDay();return d===0||d===6};
+
+/* ---------- auto skill ---------- */
+let askT=0;function autoSkill(){if(!S.g.ask||!S.autoSk||G.ch)return;const B=Object.assign({d:1,l:1,m:1,f:1},S.askB),cap=S.askCap||.3;for(let n=0;n<25;n++){let best=null,bc=Infinity;for(const k of['d','l','m','f'])if(B[k]){const c=skCost(k);if(c<bc){bc=c;best=k}}if(!best||bc>S.money*cap)break;S.money-=bc;S.sk[best]=(S.sk[best]||0)+1}}
+
 /* ---------- toasts / dialogs ---------- */
 function toast(s){const d=document.createElement('div');d.className='t';d.textContent=s;const box=$('#toast');box.appendChild(d);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2650)}
-let dlgCb=null;function ask(title,text,yes,cb){$('#dtitle').textContent=title;$('#dtext').innerHTML=text;$('#dyes').textContent=yes;$('#dno').style.display='';dlgCb=cb;$('#dlg').classList.add('open')}
+let dlgCb=null;function ask(title,text,yes,cb){$('#dno').textContent='Cancel';$('#dtitle').textContent=title;$('#dtext').innerHTML=text;$('#dyes').textContent=yes;$('#dno').style.display='';dlgCb=cb;$('#dlg').classList.add('open')}
 function info(title,text){ask(title,text,'Nice!',null);$('#dno').style.display='none'}
 $('#dyes').onclick=()=>{$('#dlg').classList.remove('open');if(dlgCb)dlgCb()};
 // a soft tick on every button press
@@ -1045,6 +1095,7 @@ function skillTree(){const br=[['d',40],['l',120],['m',200],['f',280]];let s=`<s
  return s+'</svg>'}
 function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h='';h=renderExtras(h);h=renderProgress(h);if(tab==='apex')h+=skinsHTML();if(tab==='chal'){$('#stitle').textContent='Challenges';h+=chalHTML()}if(tab==='gems')h+=`<div class="box"><div class="line"><div><h3>Apex skins</h3><div class="sub">Gilded, Neon Grid and Magma Forge are sold here. Others are earned.</div></div><button class="btn" data-act="apex">View</button></div></div>`;
  if(tab==='skills'){$('#stitle').textContent='Skill tree';h+=`<div class="box" style="padding:8px">${skillTree()}<div class="sub" style="text-align:center">Skills are permanent. Every 10 levels you pick a perk (A or B) for that branch.</div></div>`;
+   if(S.g.ask){const B=Object.assign({d:1,l:1,m:1,f:1},S.askB);h+=`<div class="box"><h3>Auto skill ${S.autoSk?'<span style="color:#b5f05a">ON</span>':'OFF'}</h3><div class="sub">Buys the cheapest skill among the branches you pick, using at most the share of your money you choose per buy.</div><div class="tags" style="gap:6px">${['d','l','m','f'].map(k=>`<button class="tog ${B[k]?'on':''}" data-act="askb" data-k="${k}">${SK[k].n}</button>`).join('')}</div><select class="sel" data-act="askcap">${[[.1,'Up to 10% of money'],[.3,'Up to 30% of money'],[.6,'Up to 60% of money'],[1,'Spend it all']].map(([v,n])=>`<option value="${v}" ${(S.askCap||.3)===v?'selected':''}>${n}</option>`).join('')}</select></div>`}
   for(const[b,i]of pendingNodes()){const pr=NODES[b][i%2];h+=`<div class="box" style="border-color:#ffb81c"><h3 style="color:${SK[b].c}">${SK[b].n} Lv ${(i+1)*10}: choose a perk</h3><div class="line" style="align-items:stretch"><button class="btn go" style="flex:1;white-space:normal;height:auto;min-height:52px;padding:8px" data-act="node" data-k="${b}" data-i="${i}" data-o="a">A · ${pr[0]}</button><button class="btn go" style="flex:1;white-space:normal;height:auto;min-height:52px;padding:8px" data-act="node" data-k="${b}" data-i="${i}" data-o="b">B · ${pr[1]}</button></div></div>`}
   for(const k of['d','l','m','f']){const c=skCost(k);h+=`<div class="box"><div class="line"><div><h3 style="color:${SK[k].c}">${SK[k].n} · Lv ${S.sk[k]||0}</h3><div class="sub">${SK[k].eff(S.sk[k]||0)} → ${SK[k].eff((S.sk[k]||0)+1)}</div>${(S.node[k]||[]).filter(Boolean).length?`<div class="sub" style="color:#c9bea4">Perks: ${(S.node[k]||[]).map((v,i)=>v?NODES[k][i%2][v==='a'?0:1]:null).filter(Boolean).join(' · ')}</div>`:''}</div><button class="btn go" data-act="sk" data-k="${k}" ${S.money<c?'disabled':''}><span class="coin"></span>${fmt(c)}</button></div><button class="btn" data-act="skmax" data-k="${k}" ${S.money<c?'disabled':''}>Buy max</button></div>`}}
  if(tab==='rebirth'){$('#stitle').textContent='Rebirth';const c=rbCost();const nm=Math.round(((1+.25*(S.rb+1))/(1+.25*S.rb)-1)*100),nl=Math.round(((1+.1*(S.rb+1))/(1+.1*S.rb)-1)*100);
@@ -1075,7 +1126,8 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
   h+=`<h3 style="margin:6px 2px 0">Big buys</h3>`;
   h+=it('24h offline','Earn offline for up to 24 hours instead of 8.',350,'g_o24',S.g.o24);
   h+=it('Rebirth kit','Start every rebirth with your 4 Common turrets already at level 10.',1000,'g_kit',S.g.kit);
-  h+=it('Auto Ascend','Ascends automatically once it would give the shards you choose.',1500,'g_aa',S.g.aa,S.g.aa?`<select class="sel" data-act="aamin">${[5,10,25,50,100,250].map(v=>`<option value="${v}" ${(S.aaMin||10)===v?'selected':''}>At ${v}+ shards</option>`).join('')}</select>`:'');
+  h+=it('Auto Skill','Spends money on skills for you. Choose branches and a spending limit in the Skills tab.',120,'g_ask',S.g.ask);
+   h+=it('Auto Ascend','Ascends automatically once it would give the shards you choose.',1500,'g_aa',S.g.aa,S.g.aa?`<select class="sel" data-act="aamin">${[5,10,25,50,100,250].map(v=>`<option value="${v}" ${(S.aaMin||10)===v?'selected':''}>At ${v}+ shards</option>`).join('')}</select>`:'');
   h+=S.g.off<5?it(`Offline earnings Lv ${S.g.off+1}`,`Earn more while away (now ${25+S.g.off*12}% of what your current wave pays, up to 8 hours). Waves never go up while away.`,3*(S.g.off+1),'g_off',0):it('Offline earnings','Maxed out.',0,'',1)}
  if(tab==='more'){$('#stitle').textContent='More';h+=`<div class="box"><h3>Stats</h3><div class="stats"><span>World</span><span>${Wd().n}</span><span>Wave</span><span>${S.wave}</span><span>Total luck</span><span>x${luck().toFixed(2)}</span><span>Money multiplier</span><span>x${fmt(moneyMult())}</span><span>Damage multiplier</span><span>x${dmgMult().toFixed(2)}</span><span>Team DPS</span><span>${fmt(S.slots.reduce((a,it)=>a+(it?dps(it):0),0))}</span><span>Zombies killed</span><span>${fmt(S.kills)}</span><span>Income</span><span>${fmt(S.rate)}/s</span></div></div>
   <div class="box"><h3>Roll odds now</h3><div class="stats">${(()=>{const L=luck(),ws=rollWeights(L),t=ws.reduce((a,b)=>a+b);return RAR.map((r,i)=>i===4&&!(S.asc>=1)?'':`<span style="color:${r.c}">${r.n}</span><span>${(ws[i]/t*100).toFixed(ws[i]/t<.01?2:1)}%</span>`).join('')})()}<span>Any mod</span><span>${unlockedMods().length?(Math.min(.5,.07*Math.pow(luck(),.6))*100).toFixed(1)+'%':'Rebirth to unlock'}</span></div></div>
@@ -1088,17 +1140,18 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
   h+=`<div class="box"><h3>Account</h3><label class="sub" for="pname">Player name</label><input id="pname" class="sel" maxlength="16" value="${(S.name||'').replace(/[&<>"]/g,'')}" data-act="name" autocomplete="off">
    <div class="stats"><span>Play time</span><span>${hm(S.time)}</span><span>Zombies killed</span><span>${fmt(S.kills)}</span><span>Money earned</span><span>${fmt(S.earned)}</span><span>Rebirths</span><span>${S.rb}</span><span>Gems</span><span>${fmt(S.gems)}</span>${S.bestW.map((b,i)=>b?`<span>Best wave · ${world(i).n}</span><span>${b}</span>`:'').join('')}</div>
    <div class="sub">Your account is this save. It lives on this device; use the backup code to move it to another phone or into the app.</div></div>
-  <div class="box"><h3>Audio</h3>${sl('master','Master volume')}${sl('sfx','Effects')}${sl('music','Boss music')}<div class="line"><div><b>Mute everything</b></div><button class="tog ${S.mute?'on':''}" data-act="mute">${S.mute?'ON':'OFF'}</button></div></div>
+  <div class="box"><h3>Audio</h3>${sl('master','Master volume')}${sl('sfx','Effects')}${sl('music','Music')}<div class="line"><div><b>Mute everything</b></div><button class="tog ${S.mute?'on':''}" data-act="mute">${S.mute?'ON':'OFF'}</button></div></div>
   <div class="box"><h3>Graphics</h3>${se('gfxq','Quality',[['auto','Auto (now '+QN[Q]+')'],['0','Low'],['1','Medium'],['2','High']],'Effects only: Low turns off fog and grain and limits particles. Sharpness is set by Resolution.')}
    ${se('res','Resolution',[['auto','Auto (sharp, lowers only if needed)'],['1','Low (1x)'],['1.5','Medium (1.5x)'],['2','High (2x)'],['native','Native']],'Lower is smoother, higher is sharper.')}
    ${tg('compat','Compatibility mode','Try this if parts of the game are missing or black. The app restarts.')}<button class="btn" data-act="gfxinfo">Graphics check</button>${se('cap','Frame limit',[['30','30 FPS (saves battery)'],['60','60 FPS']])}${tg('fps','FPS counter')}</div>
+  <div class="box"><h3>Gameplay</h3>${tg('wskip','Wave skip','When you clear a wave in under 6 seconds without taking damage, jump ahead up to 4 waves (never past a boss).')}${tg('notif','Phone notifications','Offline limit reached, daily challenge, weekly boss, horde night.')}</div>
   <div class="box"><h3>Display</h3>${se('dps','DPS meter',[['off','Off'],['team','Team panel'],['turret','Under each turret'],['both','Both']])}
    ${tg('vib','Vibration on rolls','Stronger and longer for rarer turrets and mods.')}${tg('dmg','Damage numbers')}${tg('cash','Money pop-ups')}${tg('badges','Turret level badges')}${tg('shake','Screen shake')}${tg('gore','Blood and gore','Off removes blood, gore and corpses.')}</div>
   <div class="box"><h3>Backup save</h3><div class="sub">Copy this code somewhere safe, or paste one to load it.</div><textarea id="savebox" spellcheck="false"></textarea><div class="line"><button class="btn" data-act="exp">Show code</button><button class="btn" data-act="copy">Copy</button><button class="btn go" data-act="imp">Load</button></div></div>
   <div class="box"><h3>Reset</h3><button class="btn warn" data-act="wipe">Delete all progress</button></div>`}
  if(h===lastSheet&&tab===lastTab)return;lastSheet=h;lastTab=tab;const keep=tab==='settings'?$('#savebox')?.value:null;b.innerHTML=h;if(tab==='dex')drawDex();if(tab==='apex')drawSkins();if(keep!=null&&$('#savebox'))$('#savebox').value=keep;b.scrollTop=st}
 let lastSheet='',lastTab=null;
-$('#sbody').addEventListener('change',e=>{if(e.target.dataset.act==='aamin'){S.aaMin=+e.target.value;save()}if(e.target.dataset.act==='fmin'){S.fMin=+e.target.value;save()}const d=e.target.dataset;if(d.act==='set'){const v=e.target.value;if(d.k==='gfxq'){S.gfx=v;if(v!=='auto')Q=+v;resize()}else if(d.k==='res'){S.set.res=v;resize()}else if(d.k==='cap')S.set.cap=+v;else S.set[d.k]=v;save();render()}
+$('#sbody').addEventListener('change',e=>{if(e.target.dataset.act==='aamin'){S.aaMin=+e.target.value;save()}if(e.target.dataset.act==='askcap'){S.askCap=+e.target.value;save()}if(e.target.dataset.act==='fmin'){S.fMin=+e.target.value;save()}const d=e.target.dataset;if(d.act==='set'){const v=e.target.value;if(d.k==='gfxq'){S.gfx=v;if(v!=='auto')Q=+v;resize()}else if(d.k==='res'){S.set.res=v;resize()}else if(d.k==='cap')S.set.cap=+v;else S.set[d.k]=v;save();render()}
  if(d.act==='name'){S.name=e.target.value.trim().slice(0,16)||'Survivor';save()}});
 $('#sbody').addEventListener('input',e=>{const d=e.target.dataset;if(d.act==='vol'){S.set[d.k]=+e.target.value;$('#v_'+d.k).textContent=e.target.value+'%';audio();vol()}});
 $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||t.disabled||t.tagName==='SELECT'||t.tagName==='INPUT')return;const a=t.dataset.act,k=t.dataset.k;
@@ -1108,7 +1161,7 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='skmax'){let n=0;while(S.money>=skCost(k)&&n<1000){S.money-=skCost(k);S.sk[k]++;n++}}
  if(a==='rb')ask('Rebirth?','Your wave, turrets and money reset. You keep skills and gems.','Rebirth',doRebirth);
  if(a==='travel'){const w=+t.dataset.w;ask(`Travel to ${world(w).n}?`,'You keep your turrets, money and Apex. The wave starts over at 1.','Travel',()=>{travelTo(w);closeSheet()})}
- if(a==='g_mr')gem(S.g.mr?90:30,()=>{S.g.mr=(S.g.mr||0)+1});if(a==='g_lp3')gem(12,()=>S.lp3=(S.lp3||0)+1800);if(a==='g_mp3')gem(12,()=>S.mp3=(S.mp3||0)+1800);if(a==='g_af')gem(40,()=>S.g.af=1);if(a==='g_o24')gem(350,()=>S.g.o24=1);if(a==='g_kit')gem(1000,()=>S.g.kit=1);if(a==='g_aa')gem(1500,()=>{S.g.aa=1;S.autoAsc=1});
+ if(a==='g_ask')gem(120,()=>{S.g.ask=1;S.autoSk=1});if(a==='g_mr')gem(S.g.mr?90:30,()=>{S.g.mr=(S.g.mr||0)+1});if(a==='g_lp3')gem(12,()=>S.lp3=(S.lp3||0)+1800);if(a==='g_mp3')gem(12,()=>S.mp3=(S.mp3||0)+1800);if(a==='g_af')gem(40,()=>S.g.af=1);if(a==='g_o24')gem(350,()=>S.g.o24=1);if(a==='g_kit')gem(1000,()=>S.g.kit=1);if(a==='g_aa')gem(1500,()=>{S.g.aa=1;S.autoAsc=1});
  if(a==='g_ar')gem(3,()=>S.g.ar=1);if(a==='g_ab')gem(5,()=>S.g.ab=1);if(a==='g_flt')gem(4,()=>S.g.flt=1);if(a==='g_arb')gem(15,()=>S.g.arb=1);
  if(a==='g_spd')gem(SPEEDC[S.g.spd+1],()=>{S.g.spd++;S.spdSel=S.g.spd});if(a==='g_lp')gem(2,()=>S.lp+=300);if(a==='g_mp')gem(2,()=>S.mp+=300);if(a==='g_guar')gem(4,()=>S.guar++);if(a==='g_off')gem(3*(S.g.off+1),()=>S.g.off++);
  if(a==='menu'){openMenu();return}
@@ -1116,12 +1169,14 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='ascend'){ask('Ascend?',`You get +${shardsFor()} shards and x2 damage and money forever. Rebirths, worlds, turrets, money and your Apex reset.`,'Ascend',doAscend);return}
  if(a==='perk'){const P2=PERKS.find(q=>q[0]===k),c=perkCost(P2);if((S.shards||0)>=c){S.shards-=c;S.perk[k]=(S.perk[k]||0)+1;sfx('buy')}}
  if(a==='forge'){forge(+k);render();return}
+  if(a==='tinfo'){turretInfo(+k);return}
+  if(a==='askb'){S.askB=Object.assign({d:1,l:1,m:1,f:1},S.askB);S.askB[k]=S.askB[k]?0:1;save();render();return}
   if(a==='chs'){startCh(k);return}
   if(a==='skin'){const K=SKINS.find(q=>q.id===k);if(!K)return;if(!skinOwned(k)){if(K.gem&&S.gems>=K.gem){S.gems-=K.gem;S.skins[k]=1;sfx('buy');toast(`Apex skin: ${K.n}`)}else return}S.skin=k;save();render();return}
  if(a==='tut'){closeSheet();startTut();return}
  if(a==='gfxinfo'){gfxInfo();return}
  if(a==='tg'&&k==='compat'){S.set.compat=S.set.compat?0:1;save();location.reload();return}
- if(a==='tg'){S.set[k]=S.set[k]?0:1;if(k==='badges')for(const q in TB)delete TB[q];save();render();return}
+ if(a==='tg'){S.set[k]=S.set[k]?0:1;if(k==='notif'&&S.set.notif)notifPerm();if(k==='badges')for(const q in TB)delete TB[q];save();render();return}
  if(a==='mute'){audio();S.mute=S.mute?0:1;if(S.mute)setDrone(false);sndIcon();save();render();return}
  if(a==='exp'){save();$('#savebox').value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));return}
  if(a==='copy'){const v=$('#savebox').value;if(!v){toast('Tap "Show my code" first');return}navigator.clipboard?.writeText(v).then(()=>toast('Save code copied'),()=>{$('#savebox').select();toast('Select the text and copy it')});return}
@@ -1133,7 +1188,7 @@ function resetRun(w){S.money=50;S.wave=1;S.world=w;S.slots=startSlots();S.extra=
 function doRebirth(){if(G.ch)return;const c=rbCost();if(S.money<c)return;S.rb++;resetRun(S.world);const m=MODS.find(m=>m.rb===S.rb);toast(`Rebirth ${S.rb}! +25% money, +10% luck`);if(m)toast(`${m.n} mods can now appear!`);checkUnlock()}
 
 /* ---------- autos / hud ---------- */
-function renderAutos(){let h=`<button class="tog ${focusOn()?'on':''}" data-a="focus">Focus: <b style="color:${focusOn()?RAR[S.focus].c:'inherit'}">${focusOn()?RAR[S.focus].n:'Any'}</b></button>`;if(S.g.ar)h+=`<button class="tog ${S.autoRoll?'on':''}" data-a="autoRoll">Auto roll ${S.autoRoll?'ON':'OFF'}</button>`;if(S.g.ab)h+=`<button class="tog ${S.autoBuy?'on':''}" data-a="autoBuy">Auto buy ${S.autoBuy?'ON':'OFF'}</button>`;if(S.g.arb)h+=`<button class="tog ${S.autoRb?'on':''}" data-a="autoRb">Auto rebirth ${S.autoRb?'ON':'OFF'}</button>`;if(S.g.af)h+=`<button class="tog ${S.autoForge!==0?'on':''}" data-a="autoForge">Auto forge ${S.autoForge!==0?'ON':'OFF'}</button>`;if(S.g.aa)h+=`<button class="tog ${S.autoAsc?'on':''}" data-a="autoAsc">Auto ascend ${S.autoAsc?'ON':'OFF'}</button>`;$('#autos').innerHTML=h}
+function renderAutos(){let h=`<button class="tog ${focusOn()?'on':''}" data-a="focus">Focus: <b style="color:${focusOn()?RAR[S.focus].c:'inherit'}">${focusOn()?RAR[S.focus].n:'Any'}</b></button>`;if(S.g.ar)h+=`<button class="tog ${S.autoRoll?'on':''}" data-a="autoRoll">Auto roll ${S.autoRoll?'ON':'OFF'}</button>`;if(S.g.ab)h+=`<button class="tog ${S.autoBuy?'on':''}" data-a="autoBuy">Auto buy ${S.autoBuy?'ON':'OFF'}</button>`;if(S.g.arb)h+=`<button class="tog ${S.autoRb?'on':''}" data-a="autoRb">Auto rebirth ${S.autoRb?'ON':'OFF'}</button>`;if(S.g.ask)h+=`<button class="tog ${S.autoSk?'on':''}" data-a="autoSk">Auto skill ${S.autoSk?'ON':'OFF'}</button>`;if(S.g.af)h+=`<button class="tog ${S.autoForge!==0?'on':''}" data-a="autoForge">Auto forge ${S.autoForge!==0?'ON':'OFF'}</button>`;if(S.g.aa)h+=`<button class="tog ${S.autoAsc?'on':''}" data-a="autoAsc">Auto ascend ${S.autoAsc?'ON':'OFF'}</button>`;$('#autos').innerHTML=h}
 $('#autos').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const k=b.dataset.a;if(k==='focus'){focusPicker();return}S[k]=k==='autoForge'?(S[k]!==0?0:1):S[k]?0:1;renderAutos();save()};
 const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
 function sndIcon(){$('#snd').innerHTML=S.mute?SND_OFF:SND_ON;$('#snd').style.color=S.mute?'#6e655a':'#ece4d6'}
@@ -1145,7 +1200,7 @@ let dM=null,dGm=null,dMs='',dGs='';
 function numTick(rdt){if(dM===null){dM=S.money;dGm=S.gems}const k=Math.min(1,rdt*9);dM+=(S.money-dM)*k;dGm+=(S.gems-dGm)*k;if(Math.abs(S.money-dM)<Math.max(1,Math.abs(S.money)*1e-4))dM=S.money;if(Math.abs(S.gems-dGm)<.5)dGm=S.gems;
  const a=fmt(dM),b=fmt(Math.round(dGm));if(a!==dMs){dMs=a;$('#money').textContent=a}if(b!==dGs){dGs=b;$('#gems').textContent=b}}
 function hud(){nextLine();$('#rollp').classList.toggle('lock',!!G.ch);$('#autos').classList.toggle('lock',!!G.ch);$('#spd').textContent=SPEEDS[S.spdSel]+'x';$('#wlabel').textContent=`${Wd().n} · Wave ${S.wave}`;$('#boss').style.display=isBoss()?'':'none';$('#hp').style.width=Math.max(0,G.hp/G.maxhp*100)+'%';
- let p='';if(S.lp3>0)p+=`<span class="pot" style="background:#1f3b2a;color:#b5f05a">3x luck ${Math.ceil(S.lp3/60)}m</span>`;if(S.mp3>0)p+=`<span class="pot" style="background:#3b321a;color:#ffc940">3x cash ${Math.ceil(S.mp3/60)}m</span>`;if(S.lp>0)p+=`<span class="pot" style="background:#1f3b2a;color:#b5f05a">Luck ${Math.ceil(S.lp/60)}m</span>`;if(S.mp>0)p+=`<span class="pot" style="background:#3b321a;color:#ffc940">Cash ${Math.ceil(S.mp/60)}m</span>`;if($('#pots')._p!==p){$('#pots').innerHTML=p;$('#pots')._p=p}dot()}
+ let p='';if(S.lp3>0)p+=`<span class="pot" style="background:#1f3b2a;color:#b5f05a">3x luck ${Math.ceil(S.lp3/60)}m</span>`;if(S.mp3>0)p+=`<span class="pot" style="background:#3b321a;color:#ffc940">3x cash ${Math.ceil(S.mp3/60)}m</span>`;if(S.lp>0)p+=`<span class="pot" style="background:#1f3b2a;color:#b5f05a">Luck ${Math.ceil(S.lp/60)}m</span>`;if(S.ev&&S.ev.k==='blood')p+=`<span class="pot" style="background:#4a0a0a;color:#ff6a6a">Blood Moon ${Math.ceil(S.ev.t/60)}m</span>`;if(S.mp>0)p+=`<span class="pot" style="background:#3b321a;color:#ffc940">Cash ${Math.ceil(S.mp/60)}m</span>`;if($('#pots')._p!==p){$('#pots').innerHTML=p;$('#pots')._p=p}dot()}
 
 /* ---------- input ---------- */
 $('#rollb').onclick=()=>{if(rollAnim>0)return;if(replaceMode){replaceMode=false}doRoll()};
@@ -1173,6 +1228,14 @@ const WALLF=(()=>{const r=seeded(77),a=[];for(let i=0;i<6;i++){let x=r()*W;if(x>
 function crackTex(stg){return gT('crk'+stg,W,34,g=>{const r=seeded(31);for(let k=1;k<=stg;k++){const n=k===1?5:k===2?7:9;for(let i=0;i<n;i++){let x=r()*W,y=4+r()*24;const pts=[[x,y]];for(let j=0;j<5+k;j++){x+=(r()-.5)*16;y+=(r()-.3)*7;y=Math.max(1,Math.min(33,y));pts.push([x,y])}
   for(const[w,c]of[[2.2,'rgba(0,0,0,.8)'],[.7,k===3?'rgba(255,110,30,.9)':'rgba(255,255,255,.12)']]){g.strokeStyle=c;g.lineWidth=w;g.beginPath();pts.forEach(p=>g.lineTo(p[0],p[1]));g.stroke()}}
   if(k===3)for(let i=0;i<5;i++){g.fillStyle='rgba(0,0,0,.65)';g.beginPath();g.ellipse(r()*W,6+r()*22,4+r()*5,2+r()*2,0,0,7);g.fill()}}},0,0)}
+function abilityText(T){const ar=T.ar?` with a blast radius of ${T.ar}`:'';let d={bullet:`Fires ${T.b>=4?'a stream of ':''}bullets at the closest zombie.`,splash:`Lobs shells that explode${ar}.`,slow:`Frost shots slow zombies by ${Math.round((T.sl||0)*100)}%.`,chain:`Lightning jumps between up to ${T.ch||1} zombies.`,pierce:'A rail shot that hits every zombie in a line.',beam:`A constant beam${T.ramp?' that heats up to 3x damage on one target':''}.`,drone:'Three drones orbit the turret and take turns firing.',nova:'Charges up, then hits every zombie on the field at once.',meteor:`Calls a meteor down on a random zombie, exploding${ar}.`}[T.k]||'';
+ if(T.burn)d+=` Sets zombies on fire for ${Math.round(T.burn*100)}% of its damage per second for 3s.`;if(T.stun)d+=` Freezes zombies in time for ${T.stun}s (bosses a quarter as long).`;if(T.exe)d+=` Instantly kills zombies under ${Math.round(T.exe*100)}% health; bosses take double damage.`;if(T.poi)d+=' Stacks poison (up to 10) that spreads when a plagued zombie dies.';if(T.shat)d+=` Deals ${T.shat}x damage to slowed or frozen zombies.`;if(T.pull)d+=' Drags nearby zombies together and pushes them back.';if(T.wide)d+=' The blast covers the whole lane.';if(T.sl&&T.k!=='slow')d+=` Slows by ${Math.round(T.sl*100)}%.`;return d}
+function turretInfo(t){const T=TUR[t],R=RAR[T.r],o=S.slots[slotOf(t)],own=o&&o.t===t?o:null,st=S.stars[t]||0;
+ let h=`<canvas id="tic" width="220" height="220" style="width:110px;height:110px;margin:0 auto;display:block"></canvas><div style="margin-top:4px"><span class="tag" style="background:${R.c}">${R.n}</span> <span class="sub">${kname(T)}</span></div><div class="sub" style="text-align:left;margin-top:8px">${abilityText(T)}</div>
+ <div class="stats" style="margin-top:8px;text-align:left"><span>Base damage</span><span>${fmt(T.d)}${T.k==='beam'?' per second':''}</span><span>Attacks per second</span><span>${T.k==='beam'?'Constant':T.rt}</span>${T.ar?`<span>Blast radius</span><span>${T.ar}</span>`:''}${T.ch?`<span>Chain jumps</span><span>${T.ch}</span>`:''}`;
+ if(own)h+=`<span>Your level</span><span>${own.lv||0} / ${MAXLV}</span><span>Mod</span><span>${own.m>=0?`<b style="color:${MODS[own.m].c}">${MODS[own.m].n} x${MODS[own.m].m}</b>`:'None'}</span><span>Current DPS</span><span>${fmt(dps(own))}</span>`;
+ h+=`<span>Stars</span><span>${st?'★'+st+' (+'+st*50+'%)':'None'}</span><span>Prestige</span><span>${S.prest[t]?'♛ x5 damage':'No'}</span></div><div class="sub" style="text-align:left;margin-top:6px;font-size:13px">Each level: +20% damage and +5% fire rate. Each star: +50% damage (shards). Prestige: x5 damage (Prestige Crown).</div>`;
+ info(T.n,h);$('#dyes').textContent='Close';const c=$('#tic');if(c){const g=c.getContext('2d');g.setTransform(5.2,0,0,5.2,110,110);drawTurret(g,own||{t,m:-1,lv:0},-Math.PI/2,1,false)}}
 function starTex(n){return gT('st'+n,28,14,g=>{g.fillStyle='rgba(0,0,0,.7)';rr(g,-13,-6.5,26,13,4);g.fill();g.fillStyle='#ffd34a';g.font='10px "Black Ops One",sans-serif';g.textAlign='center';g.fillText('★'+n,0,3.6)})}
 function crownTex(){return gT('crown',18,14,g=>{g.fillStyle='#ffd34a';g.strokeStyle='#4a3008';g.lineWidth=1;g.beginPath();g.moveTo(-7,5);g.lineTo(-8,-4);g.lineTo(-3.5,0);g.lineTo(0,-6);g.lineTo(3.5,0);g.lineTo(8,-4);g.lineTo(7,5);g.closePath();g.fill();g.stroke();g.fillStyle='#ff4a6a';circ(g,0,1.5,1.4)})}
 /* ---------- extras: haptics, collection, achievements, daily rewards, quests, tutorial, pause ---------- */
@@ -1229,7 +1292,7 @@ $('#coach').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;if(b.d
 let PAUSED=false;function pauseGame(on){PAUSED=on;$('#pauseo').classList.toggle('on',on);setDrone(false);if(!on)last=performance.now();else save()}
 $('#pause').onclick=()=>pauseGame(true);
 $('#pauseo').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;const p=b.dataset.p;if(p==='resume')pauseGame(false);if(p==='settings')openTab('settings');if(p==='menu'){pauseGame(false);openMenu()}};
-let xT=0;function extrasTick(rdt){xT-=rdt;if(xT>0)return;xT=1;if(S.st.bosses>=100&&!S.skins.bone){S.skins.bone=1;toast('Apex skin unlocked: Bone Throne')}if(S.g.af&&S.autoForge!==0){for(let r=RAR.length-1;r>=0;r--)if(canForge(r)){forge(r);break}}if(S.g.aa&&S.autoAsc&&canAscend()&&shardsFor()>=(S.aaMin||10)){doAscend();return}for(let r=0;r<RAR.length;r++)if(canForge(r)&&!(S.apexHint&1<<r)){S.apexHint=(S.apexHint||0)|1<<r;toast(`All 4 ${RAR[r].n} turrets maxed! Tap APEX in your wall to forge.`)}checkAch();checkQuests();if(S.daily.last!==today()){const f=checkDaily();if(f)f()}}
+let xT=0;function extrasTick(rdt){xT-=rdt;if(xT>0)return;xT=1;evTick(1);if(S.st.bosses>=100&&!S.skins.bone){S.skins.bone=1;toast('Apex skin unlocked: Bone Throne')}if(S.g.af&&S.autoForge!==0){for(let r=RAR.length-1;r>=0;r--)if(canForge(r)){forge(r);break}}if(S.g.aa&&S.autoAsc&&canAscend()&&shardsFor()>=(S.aaMin||10)){doAscend();return}for(let r=0;r<RAR.length;r++)if(canForge(r)&&!(S.apexHint&1<<r)){S.apexHint=(S.apexHint||0)|1<<r;toast(`All 4 ${RAR[r].n} turrets maxed! Tap APEX in your wall to forge.`)}checkAch();checkQuests();if(S.daily.last!==today()){const f=checkDaily();if(f)f()}}
 function renderExtras(h){
  if(tab==='quests'){$('#stitle').textContent='Daily quests';checkQuests();h+=`<div class="box"><div class="line"><div><h3>Login streak: ${S.daily.streak} day${S.daily.streak===1?'':'s'}</h3><div class="sub">Next reward: ${DR[S.daily.streak%7][0]}</div></div></div></div>`;
   for(const q of S.q.list){const p=Math.min(q.goal,qProg(q)),pc=p/q.goal*100;h+=`<div class="box"><div class="line"><div><h3>${QK[q.k][0].replace('{g}',fmt(q.goal))}</h3><div class="sub">${q.done?'Complete':fmt(p)+' / '+fmt(q.goal)}</div></div><span class="sub" style="color:${q.done?'#b5f05a':'#5ee8ff'}">${q.done?'✓':'+'+q.rw} gems</span></div><div class="hpbar" style="height:8px"><i style="width:${pc}%;background:${q.done?'#8fd12a':'linear-gradient(90deg,#13607e,#5ee8ff)'}"></i></div></div>`}
@@ -1237,7 +1300,7 @@ function renderExtras(h){
  if(tab==='ach'){const n=ACH.filter(a=>S.ach[a[0]]).length;$('#stitle').textContent=`Achievements ${n}/${ACH.length}`;
   for(const[id,nm,ds,,g]of ACH){const on=S.ach[id];h+=`<div class="box" style="${on?'border-color:#3f6b10':'opacity:.65'}"><div class="line"><div><h3 style="color:${on?'#ffb81c':'#ece4d6'}">${on?'★ ':''}${nm}</h3><div class="sub">${ds}</div></div><span class="sub" style="color:${on?'#b5f05a':'#5ee8ff'}">${on?'Done':'+'+g+' gems'}</span></div></div>`}}
  if(tab==='dex'){const n=S.dex.t.filter(Boolean).length;$('#stitle').textContent=`Collection ${n}/${TUR.length}`;
-  for(let r=RAR.length-1;r>=0;r--){if(!rarOK(r)&&!S.dex.t.slice(r*4,r*4+4).some(Boolean)){h+=`<div class="box"><h3 style="color:${RAR[r].c}">${RAR[r].n}</h3><div class="sub">Unlocks at Ascension ${RAR[r].asc}.</div></div>`;continue}h+=`<div class="box"><h3 style="color:${RAR[r].c}">${RAR[r].n}</h3><div class="dexg">`;for(let t=r*4;t<r*4+4;t++){const k=S.dex.t[t],o=owned(t)>=0?S.slots[owned(t)]:null;h+=`<div class="dexc"><canvas width="120" height="120" data-dex="${t}" data-k="${k?1:0}"></canvas><b>${k?TUR[t].n:'???'}</b><span class="sub">${k?(o?'Lv '+(o.lv||0):kname(TUR[t])):'Not found yet'}</span></div>`}h+='</div></div>'}
+  for(let r=RAR.length-1;r>=0;r--){if(!rarOK(r)&&!S.dex.t.slice(r*4,r*4+4).some(Boolean)){h+=`<div class="box"><h3 style="color:${RAR[r].c}">${RAR[r].n}</h3><div class="sub">Unlocks at Ascension ${RAR[r].asc}.</div></div>`;continue}h+=`<div class="box"><h3 style="color:${RAR[r].c}">${RAR[r].n}</h3><div class="dexg">`;for(let t=r*4;t<r*4+4;t++){const k=S.dex.t[t],o=owned(t)>=0?S.slots[owned(t)]:null;h+=`<div class="dexc" ${k?`data-act="tinfo" data-k="${t}" style="cursor:pointer"`:''}><canvas width="120" height="120" data-dex="${t}" data-k="${k?1:0}"></canvas><b>${k?TUR[t].n:'???'}</b><span class="sub">${k?(o?'Lv '+(o.lv||0):kname(TUR[t])):'Not found yet'}</span></div>`}h+='</div></div>'}
   h+=`<div class="box"><h3>Mods</h3><div class="tags">${MODS.map((m,i)=>S.dex.m[i]?`<span class="tag" style="background:${m.c}">${m.n}</span>`:'<span class="tag" style="background:#2a2520;color:#6e655a">???</span>').join('')}</div></div>`}
  return h}
 function drawDex(){document.querySelectorAll('canvas[data-dex]').forEach(c=>{const g=c.getContext('2d'),t=+c.dataset.dex;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,120,120);g.setTransform(2,0,0,2,60,60);drawTurret(g,{t,m:-1,lv:0},-Math.PI/2,1,false);
@@ -1261,7 +1324,7 @@ function frame(now){if(MENU||PAUSED){last=now;requestAnimationFrame(frame);retur
  earnT+=rdt;if(earnT>=20){S.rate=S.rate?S.rate*.5+earnWin/earnT*.5:earnWin/earnT;earnWin=0;earnT=0}
  extrasTick(rdt);dpsT+=rdt;if(dpsT>=1){for(let i=0;i<NS+4;i++){DPSV[i]=DPSV[i]*.5+DMG[i]/dpsT*.5;DMG[i]=0}dpsT=0}
  musTick();gpuDraw(t,rdt);if(Q>=2||(miniF++&1))drawMini(t);overlayDOM(rdt);
- if(fpsWarm>0)fpsWarm-=real;fpsN++;fpsT+=real;if(fpsT>=2){FPS=fpsN/fpsT;fpsN=0;fpsT=0;if((S.gfx==='auto'||S.gfx==null)&&S.set.cap>=60&&!document.hidden&&fpsWarm<=0){if(FPS<42&&(Q>0||(S.set.res==='auto'&&AR>1))){if(++slowWin>=2){slowWin=0;if(Q>0){Q--;toast(`Effects set to ${QN[Q]} for smoother play`)}else{AR=AR>2?2:AR>1.5?1.5:1;toast('Resolution lowered for smoother play')}resize()}}else slowWin=0}}
+ if(fpsWarm>0)fpsWarm-=real;fpsN++;fpsT+=real;if(fpsT>=2){FPS=fpsN/fpsT;fpsN=0;fpsT=0;if((S.gfx==='auto'||S.gfx==null)&&S.set.cap>=60&&!document.hidden&&fpsWarm<=0){if(FPS<42&&(Q>0||(S.set.res==='auto'&&AR>1))){if(++slowWin>=2){slowWin=0;if(Q>0){Q--}else{AR=AR>2?2:AR>1.5?1.5:1}resize()}}else slowWin=0}}
  hudT-=rdt;if(hudT<=0){hudT=.12;hud();setDrone(isBoss()&&G.state==='run'&&!S.mute&&!document.hidden);if(S.roll&&!rollAnim&&!replaceMode){const ok=[S.roll,...(S.extra||[])].some(x=>S.money>=x.price);if($('#buyb').disabled===ok)renderCard()}}
  sheetT-=rdt;if(sheetT<=0){sheetT=1;if(tab&&!['more','settings','dex','ach'].includes(tab)&&document.activeElement?.tagName!=='SELECT')render()}
  saveT-=rdt;if(saveT<=0){saveT=5;save()}
@@ -1275,7 +1338,7 @@ function openMenu(){MENU=true;save();setDrone(false);closeSheet();const nm=(S.na
  $('#mwel').innerHTML=S.kills>0?`Welcome back, <b>${nm}</b>`:`Welcome, <b>${nm}</b>`;
  $('#msum').textContent=S.kills>0?`${Wd().n} · Wave ${S.wave} · ${S.rb} rebirth${S.rb===1?'':'s'} · ${fmt(S.gems)} gems`:'Hold the line. Roll turrets. Survive.';
  $('#mplay').textContent=S.kills>0?'Continue':'Play';$('#menu').classList.add('on');cancelAnimationFrame(menuRaf);menuRaf=requestAnimationFrame(menuLoop)}
-function closeMenu(){audio();MENU=false;$('#menu').classList.remove('on');cancelAnimationFrame(menuRaf);last=performance.now();
+function closeMenu(){audio();MENU=false;if(!S.notifAsk&&S.set.notif){S.notifAsk=1;setTimeout(notifPerm,2500)}$('#menu').classList.remove('on');cancelAnimationFrame(menuRaf);last=performance.now();
  checkQuests();const dl=checkDaily(),pw=pendingWelcome;pendingWelcome=null;const seq=[pw,dl].filter(Boolean);const nx=()=>{const f=seq.shift();if(f){f();const o=$('#dyes').onclick;$('#dyes').onclick=()=>{$('#dlg').classList.remove('open');$('#dyes').onclick=o;setTimeout(nx,200)}}};setTimeout(nx,250);if(!S.tut&&tutStep<0)setTimeout(startTut,600)}
 $('#mplay').onclick=closeMenu;
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{audio();const m=b.dataset.m;if(m==='settings'||m==='stats')openTab('settings');if(['quests','ach','dex'].includes(m))openTab(m);
@@ -1286,7 +1349,9 @@ const nf=()=>new Promise(r=>requestAnimationFrame(()=>r())),prog=(p,txt)=>{$('#l
 afterLoad();if(S.gfx!=null&&S.gfx!=='auto')Q=+S.gfx;resize();sndIcon();prog(.3,'Building the battlefield…');await nf();
 {const jobs=pregenJobs();for(let k=0;k<jobs.length;k++){jobs[k]();if(k%6===5){prog(.3+.65*k/jobs.length,k<jobs.length*.6?'Raising the dead…':'Arming the turrets…');await nf()}}}
 LOADING=false;prog(1,'Ready');
-{const away=Math.min((Date.now()-(S.last||Date.now()))/1000,3600*((S.g.o24?24:8)+2*nc('m',1,'b')));const wn=Math.min(8+Math.floor(S.wave*1.1),45),wps=wn*zval()*(S.mp>0?moneyMult()/2:moneyMult())/(wn*Math.max(.35,1-S.wave*.01)+20);if(away>60){const v=wps*away*(.25+S.g.off*.12)*(1+.3*nc('m',1,'a'))*(1+.08*rl('purse'));S.money+=v;const hrs=Math.floor(away/3600),mins=Math.floor(away%3600/60);pendingWelcome=()=>info(`Welcome back, ${S.name||'Survivor'}!`,`You were away ${hrs?hrs+'h ':''}${mins}m.<br>Your turrets held the line at wave ${S.wave} in ${Wd().n} and earned <b style="color:#ffc940">${fmt(v)}</b> money.<br><span style="font-size:12px">Waves only go up while you play.</span>`)}}
+{const away=Math.min((Date.now()-(S.last||Date.now()))/1000,3600*((S.g.o24?24:8)+2*nc('m',1,'b')));const wn=Math.min(8+Math.floor(S.wave*1.1),45),wps=wn*zval()*(S.mp>0?moneyMult()/2:moneyMult())/(wn*Math.max(.35,1-S.wave*.01)+20);if(away>60){const v=wps*away*(.25+S.g.off*.12)*(1+.3*nc('m',1,'a'))*(1+.08*rl('purse'));S.money+=v;const hrs=Math.floor(away/3600),mins=Math.floor(away%3600/60);pendingWelcome=()=>{const capH=(S.g.o24?24:8)+2*nc('m',1,'b'),capped=away>=capH*3600-60,kills=Math.round(away*wn/(wn*Math.max(.35,1-S.wave*.01)+20)*(.25+S.g.off*.12)),gc=Math.max(3,Math.min(25,Math.ceil(away/3600)*2));
+  const txt=`<div class="sub">Away ${hrs?hrs+'h ':''}${mins}m · ${Wd().n} wave ${S.wave}</div><div style="font:32px 'Black Ops One';color:#ffc940;margin:10px 0 4px">+${fmt(v)}</div><div class="sub">About ${fmt(kills)} zombies held off while you were gone.</div>${capped?`<div class="sub" style="color:#ff8a6a;margin-top:6px">You hit the ${capH}h offline limit.${S.g.o24?'':' The gem shop sells 24h.'}</div>`:''}<div class="sub" style="margin-top:6px;font-size:12px">Waves only go up while you play.</div>`;
+  if(S.gems>=gc){ask(`Welcome back, ${S.name||'Survivor'}!`,txt,`Double it · ${gc} gems`,()=>{if(S.gems<gc)return;S.gems-=gc;S.money+=v;S.earned+=v;sfx('buy');toast(`Doubled! +${fmt(v)}`)});$('#dno').textContent='Collect'}else info(`Welcome back, ${S.name||'Survivor'}!`,txt)}}}
 await new Promise(r=>setTimeout(r,Math.max(250,1300-(performance.now()-BOOT))));
 openMenu();$('#loader').classList.add('out');setTimeout(()=>$('#loader').remove(),500);
 requestAnimationFrame(frame);
