@@ -92,7 +92,7 @@ button:focus-visible{outline:3px solid var(--good);outline-offset:2px}
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:12}
 #sheet.open{display:flex}
 #sin{background:var(--panel);width:100%;max-width:540px;max-height:82vh;border-radius:10px 10px 0 0;display:flex;flex-direction:column;animation:sup .22s ease-out;border-top:2px solid var(--rust)}
-@keyframes sup{from{transform:translateY(40px);opacity:0}}
+@keyframes sup{from{transform:translateY(24px);opacity:.3}}
 #shead{display:flex;align-items:center;padding:14px 16px 8px}
 #shead h2{flex:1;font-size:24px;letter-spacing:.8px}
 #sclose{width:44px;height:44px;border-radius:6px;background:var(--p3);font-size:20px}
@@ -142,12 +142,12 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
 .mver{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));color:#5e564c;font-size:13px}
 #dlg.open{display:flex}
 #dlg .box{max-width:360px;width:100%;background:var(--panel);border:1px solid #4a2a1e;text-align:center;padding:18px}
-button{transition:transform .09s ease-out,filter .12s}button:active:not(:disabled){transform:scale(.94);filter:brightness(1.2)}
-#sheet.open{animation:fdi .2s ease-out}@keyframes fdi{from{background:rgba(0,0,0,0)}}
-#sheet.closing{animation:fdo .17s ease-in forwards}#sheet.closing #sin{animation:sdn .17s ease-in forwards}@keyframes fdo{to{background:rgba(0,0,0,0)}}@keyframes sdn{to{transform:translateY(70px);opacity:0}}
-#sin{animation:sup .26s cubic-bezier(.2,1.25,.4,1)!important}
-#sbody.fresh>*{animation:fin .28s ease-out both}#sbody.fresh>*:nth-child(2){animation-delay:.03s}#sbody.fresh>*:nth-child(3){animation-delay:.06s}#sbody.fresh>*:nth-child(4){animation-delay:.09s}#sbody.fresh>*:nth-child(n+5){animation-delay:.12s}@keyframes fin{from{opacity:0;transform:translateY(10px)}}
-#dlg.open .box{animation:dpop .22s cubic-bezier(.2,1.4,.4,1)}@keyframes dpop{from{transform:scale(.85);opacity:0}}
+button{transition:transform .06s ease-out,filter .08s}button:active:not(:disabled){transform:scale(.94);filter:brightness(1.2)}
+
+#sheet.closing{animation:fdo .1s linear forwards}#sheet.closing #sin{animation:sdn .1s linear forwards}@keyframes fdo{to{background:rgba(0,0,0,0)}}@keyframes sdn{to{transform:translateY(70px);opacity:0}}
+#sin{animation:sup .14s ease-out!important}
+#sbody.fresh>*{animation:fin .14s ease-out}@keyframes fin{from{opacity:.4;transform:translateY(5px)}}
+#dlg.open .box{animation:dpop .12s ease-out}@keyframes dpop{from{transform:scale(.94);opacity:.3}}
 .t{transition:opacity .3s,transform .3s}.t.out{opacity:0;transform:translateY(-8px)}
 #mini.flip{animation:flip .45s cubic-bezier(.2,1.3,.4,1)}@keyframes flip{0%{transform:perspective(300px) rotateY(90deg) scale(1.15)}100%{transform:none}}
 .chip.pop{animation:cpop .25s ease-out}@keyframes cpop{40%{transform:scale(1.08)}}
@@ -1084,7 +1084,7 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.c
 /* ---------- sheets ---------- */
 let tab=null;
 function openTab(n){const was=tab;tab=n;if(was!==n)lastSheet='';const sh=$('#sheet');sh.classList.remove('closing');sh.classList.add('open');render();if(was!==n){const b=$('#sbody');b.classList.remove('fresh');void b.offsetWidth;b.classList.add('fresh');b.scrollTop=0;clearTimeout(b._ft);b._ft=setTimeout(()=>b.classList.remove('fresh'),500)}}
-function closeSheet(){if(!tab&&!$('#sheet').classList.contains('open'))return;tab=null;lastSheet='';const sh=$('#sheet');sh.classList.add('closing');setTimeout(()=>{sh.classList.remove('open','closing')},170)}
+function closeSheet(){if(!tab&&!$('#sheet').classList.contains('open'))return;tab=null;lastSheet='';const sh=$('#sheet');sh.classList.add('closing');setTimeout(()=>{sh.classList.remove('open','closing')},100)}
 $('#sclose').onclick=closeSheet;$('#sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
 function skillTree(){const br=[['d',40],['l',120],['m',200],['f',280]];let s=`<svg viewBox="0 -24 320 234" style="width:100%;max-height:230px">`;
@@ -1149,7 +1149,7 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
    ${tg('vib','Vibration on rolls','Stronger and longer for rarer turrets and mods.')}${tg('dmg','Damage numbers')}${tg('cash','Money pop-ups')}${tg('badges','Turret level badges')}${tg('shake','Screen shake')}${tg('gore','Blood and gore','Off removes blood, gore and corpses.')}</div>
   <div class="box"><h3>Backup save</h3><div class="sub">Copy this code somewhere safe, or paste one to load it.</div><textarea id="savebox" spellcheck="false"></textarea><div class="line"><button class="btn" data-act="exp">Show code</button><button class="btn" data-act="copy">Copy</button><button class="btn go" data-act="imp">Load</button></div></div>
   <div class="box"><h3>Reset</h3><button class="btn warn" data-act="wipe">Delete all progress</button></div>`}
- if(h===lastSheet&&tab===lastTab)return;lastSheet=h;lastTab=tab;const keep=tab==='settings'?$('#savebox')?.value:null;b.innerHTML=h;if(tab==='dex')drawDex();if(tab==='apex')drawSkins();if(keep!=null&&$('#savebox'))$('#savebox').value=keep;b.scrollTop=st}
+ if(h===lastSheet&&tab===lastTab)return;lastSheet=h;lastTab=tab;const keep=tab==='settings'?$('#savebox')?.value:null;b.innerHTML=h;if(tab==='dex'||tab==='apex'){const tb=tab;requestAnimationFrame(()=>{if(tab!==tb)return;if(tb==='dex')drawDex();else drawSkins()})}if(keep!=null&&$('#savebox'))$('#savebox').value=keep;b.scrollTop=st}
 let lastSheet='',lastTab=null;
 $('#sbody').addEventListener('change',e=>{if(e.target.dataset.act==='aamin'){S.aaMin=+e.target.value;save()}if(e.target.dataset.act==='askcap'){S.askCap=+e.target.value;save()}if(e.target.dataset.act==='fmin'){S.fMin=+e.target.value;save()}const d=e.target.dataset;if(d.act==='set'){const v=e.target.value;if(d.k==='gfxq'){S.gfx=v;if(v!=='auto')Q=+v;resize()}else if(d.k==='res'){S.set.res=v;resize()}else if(d.k==='cap')S.set.cap=+v;else S.set[d.k]=v;save();render()}
  if(d.act==='name'){S.name=e.target.value.trim().slice(0,16)||'Survivor';save()}});
