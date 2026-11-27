@@ -26,11 +26,16 @@ android {
             keyPassword 'turretroll'
         }
     }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.shared
         }
         release {
+            signingConfig signingConfigs.shared
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

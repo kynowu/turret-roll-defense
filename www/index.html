@@ -124,7 +124,9 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
 .coachHi{position:relative;z-index:6;box-shadow:0 0 0 3px #e0242c,0 0 18px #e0242c!important;animation:chi 1.2s infinite}@keyframes chi{50%{box-shadow:0 0 0 3px #ffb81c,0 0 26px #ffb81c}}
 .dexg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dexc{background:#14120f;border:1px solid #2a2520;border-radius:6px;padding:8px;display:grid;justify-items:center;text-align:center;gap:2px}.dexc canvas{width:72px;height:72px}.dexc b{font-family:'Black Ops One';font-weight:400;font-size:14px}
 #loader{z-index:20;transition:opacity .45s}#loader.out{opacity:0;pointer-events:none}
-#menu{z-index:8;display:none}#menu.on{display:flex;animation:mfade .35s ease-out}@keyframes mfade{from{opacity:0}}
+#menu{z-index:8;display:none;background:radial-gradient(ellipse at 50% 38%,rgba(20,8,6,.45) 0,rgba(10,6,4,.72) 45%,rgba(5,4,3,.94) 85%)}#menu.on{display:flex;animation:mfade .35s ease-out}@keyframes mfade{from{opacity:0}}
+#mplay{animation:mpulse 1.8s ease-in-out infinite}@keyframes mpulse{50%{box-shadow:0 0 26px rgba(224,36,44,.65);transform:scale(1.03)}}
+.mt{animation:mtin .6s cubic-bezier(.2,1.3,.4,1)}@keyframes mtin{from{transform:scale(1.25);opacity:0;letter-spacing:8px}}
 .mt{font:400 clamp(34px,10vw,48px)/1 'Black Ops One',Impact,sans-serif;color:#ece4d6;letter-spacing:1px;text-shadow:0 3px 0 #000,0 0 24px rgba(224,36,44,.35)}
 .mt span{display:block;color:#e0242c;font-size:.36em;margin-top:8px;letter-spacing:3px}
 .mt em{font-style:normal;color:#e0242c}
@@ -137,7 +139,7 @@ textarea{width:100%;height:80px;background:#070605;color:var(--ink);border:1px s
 .mbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(86vw,340px);margin-top:12px}
 .mbtns .big{grid-column:1/-1}
 .mbtns .big{height:56px;font-size:22px;background:linear-gradient(#d4262e,#7d0c10);border:1px solid #3a0406}
-.mb2{height:48px;border-radius:6px;background:#1d1a17;border:1px solid #3a332b;font-family:'Black Ops One';font-size:17px;letter-spacing:.6px;color:#ece4d6}
+.mb2{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:6px;background:#1d1a17;border:1px solid #3a332b;font-family:'Black Ops One';font-size:17px;letter-spacing:.6px;color:#ece4d6}
 .mb2:active,.mbtns .big:active{transform:translateY(1px)}
 .mver{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));color:#5e564c;font-size:13px}
 #dlg.open{display:flex}
@@ -158,6 +160,10 @@ button{transition:transform .06s ease-out,filter .08s}button:active:not(:disable
  #hud{grid-area:hud;border-bottom:0;border-left:2px solid var(--rust)}#stage{grid-area:stage;min-height:0}#rollp{grid-area:roll;border-left:2px solid var(--rust)}#autos{grid-area:autos}#tabs{grid-area:tabs}
  #rollp,#autos,#tabs,#hud{zoom:1}#sheet{justify-content:flex-end;align-items:stretch}#sin{width:min(440px,42vw);max-width:none;max-height:none;height:100%;border-radius:0;border-top:0;border-left:2px solid var(--rust)}
  @keyframes sup{from{transform:translateX(60px);opacity:0}}}
+body.inmenu #hud,body.inmenu #rollp,body.inmenu #autos,body.inmenu #tabs{visibility:hidden}
+svg.ic{width:18px;height:18px;flex:none;vertical-align:-3px;margin-right:6px}.mb2 svg.ic{margin:0;width:19px;height:19px;color:#e0242c}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:78px;border-radius:8px;background:linear-gradient(#24201c,#161311);border:1px solid #3a332b;color:#ece4d6;font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:.3px;box-shadow:inset 0 1px 0 #ffffff10,0 2px 6px #0008}.tile svg.ic{width:28px;height:28px;margin:0}
+.cl{padding:7px 0;border-top:1px solid #2e2924}.cl:first-of-type{border-top:0}.cl b{color:#ffb81c}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <div id="app">
@@ -191,7 +197,7 @@ button{transition:transform .06s ease-out,filter .08s}button:active:not(:disable
 </div>
 <div id="loader" class="scr"><canvas id="lic" width="460" height="460"></canvas><div class="mt">ROT <em>&amp;</em> ROLL<span>ZOMBIE TURRET DEFENSE</span></div><div class="lbar"><i id="lprog"></i></div><div id="ltxt">Loading…</div></div>
 <div id="menu" class="scr"><canvas id="mic" width="460" height="460"></canvas><div class="mt">ROT <em>&amp;</em> ROLL<span>ZOMBIE TURRET DEFENSE</span></div><div id="mwel"></div><div id="msum"></div>
- <div class="mbtns"><button class="big" id="mplay">Continue</button><button class="mb2" data-m="quests">Daily quests</button><button class="mb2" data-m="ach">Achievements</button><button class="mb2" data-m="dex">Collection</button><button class="mb2" data-m="stats">Stats &amp; account</button><button class="mb2" data-m="settings">Settings</button><button class="mb2" data-m="how">How to play</button></div></div>
+ <div class="mbtns"><button class="big" id="mplay">Continue</button><button class="mb2" data-m="quests">__IC_quests__Daily quests</button><button class="mb2" data-m="ach">__IC_ach__Achievements</button><button class="mb2" data-m="dex">__IC_dex__Collection</button><button class="mb2" data-m="stats">__IC_stats__Stats &amp; account</button><button class="mb2" data-m="settings">__IC_settings__Settings</button><button class="mb2" data-m="about">__IC_about__About</button><button class="mb2" data-m="how">__IC_tut__How to play</button></div></div>
 <div id="pauseo" class="scr"><div class="mt">PAUSED</div><div class="mbtns" style="grid-template-columns:1fr"><button class="big" data-p="resume">Resume</button><button class="mb2" data-p="settings">Settings</button><button class="mb2" data-p="menu">Main menu</button></div></div>
 <div id="coach"></div>
 <div id="sheet"><div id="sin"><div id="shead"><h2 id="stitle"></h2><button id="sclose" aria-label="Close">✕</button></div><div id="sbody"></div></div></div>
@@ -1082,9 +1088,64 @@ const isWknd=()=>{const d=new Date().getDay();return d===0||d===6};
 /* ---------- auto skill ---------- */
 let askT=0;function autoSkill(){if(!S.g.ask||!S.autoSk||G.ch)return;const B=Object.assign({d:1,l:1,m:1,f:1},S.askB),cap=S.askCap||.3;for(let n=0;n<25;n++){let best=null,bc=Infinity;for(const k of['d','l','m','f'])if(B[k]){const c=skCost(k);if(c<bc){bc=c;best=k}}if(!best||bc>S.money*cap)break;S.money-=bc;S.sk[best]=(S.sk[best]||0)+1}}
 
+
+let dlgT=0,dlgNo=null;
+/* ---------- icon set ---------- */
+const ICP={chal:'M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2',
+ quests:'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+ ach:'M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8M18 2H6v7a6 6 0 0 0 12 0V2z',
+ dex:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
+ apex:'M2 5l4 11h12l4-11-6 6-4-7-4 7-6-6zM5 20h14',
+ relics:'M6 3h12l4 6-10 13L2 9zM11 3 8 9l4 13 4-13-3-6M2 9h20',
+ asc:'M12 21V4M5 11l7-7 7 7M4 21h16',
+ tut:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01',
+ menu:'M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
+ about:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01',
+ stats:'M3 3v18h18M8 17v-5M13 17V8M18 17v-9',
+ settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+ skull:'M12 2a8 8 0 0 0-8 8c0 2.8 1.4 5 3.5 6.3V20h9v-3.7C18.6 15 20 12.8 20 10a8 8 0 0 0-8-8zM9 11h.01M15 11h.01M10 20v-2M14 20v-2',
+ sword:'M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2',
+ clover:'M12 12C9 8 5 8.5 5 11.5S9 15 12 12zm0 0c3-4 7-3.5 7-.5S15 15 12 12zm0 0C8 9 8.5 5 11.5 5S15 9 12 12zm0 0c-4 3-3.5 7-.5 7s3.5-4 .5-7zm0 7v3',
+ coins:'M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM18.1 10.4A6 6 0 1 1 10.3 18M7 6h1v4M16.7 13.9l.7.7-2.8 2.8',
+ shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+ star:'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z',
+ clock:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+ cal:'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18M8 15l2 2 4-4',
+ horde:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+ gift:'M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z',
+ screen:'M2 3h20v14H2zM8 21h8M12 17v4',
+ sound:'M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14',
+ phone:'M6 2h12v20H6zM11 18h2',
+ save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
+ pad:'M6 12h4M8 10v4M15 13h.01M18 11h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15a3 3 0 0 0 5.2 2l1.6-2h6.4l1.6 2A3 3 0 0 0 22 15l-.7-6.4A4 4 0 0 0 17.3 5z',
+ globe:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20',
+ rebirth:'M20 12a8 8 0 1 1-3-6.2M20 4v5h-5',
+ user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+ dice:'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01',
+ bolt:'M13 2 3 14h9l-1 8 10-12h-9z',
+ play:'M7 4v16l13-8z',
+ trophy2:'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z'};
+const ic=(n,c)=>ICP[n]?`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="${ICP[n]}"/></svg>`:'';
+// headings that get an icon automatically (matched by how the heading starts)
+const H3I=[['Stats','stats'],['Roll odds','dice'],['Turret index','dex'],['Audio','sound'],['Gameplay','pad'],['Display','screen'],['Graphics','screen'],['Haptics','phone'],['Vibration','phone'],['Account','user'],['Save','save'],['Backup','save'],['Rebirths','rebirth'],['Next rebirth','rebirth'],['Modifications','star'],['Ascension','asc'],['Weekly boss','skull'],['Horde','horde'],['Boss rush','skull'],['Timed','clock'],['Daily challenge','cal'],['Apex','apex'],['Auto skill','bolt'],['What','gift'],['Version','about'],['Forge','apex'],['Relic','relics'],['Achievements','ach'],['Quests','quests'],['Daily','cal'],['Worlds','globe'],['Shards','asc'],['Stars','star']];
+function decorate(root){root.querySelectorAll('.box h3').forEach(h=>{if(h.dataset.ic)return;h.dataset.ic=1;const t=h.textContent.trim(),m=H3I.find(([k])=>t.startsWith(k));if(m)h.insertAdjacentHTML('afterbegin',ic(m[1]))})}
+const TILES=[['chal','Challenges','chal','#ff6a6a'],['quests','Daily quests','quests'],['ach','Achievements','ach','#ffc940'],['dex','Collection','dex'],['apex','Apex','apex','#ff4fd8'],['relics','Relics','relics','#5ee8ff'],['asc','Ascension','asc','#ff4fd8'],['about','About','about'],['tut','Tutorial','tut'],['menu','Main menu','menu']];
+const tilesHTML=()=>`<div class="tiles">${TILES.map(([a,n,i,c])=>`<button class="tile" data-act="${a}">${ic(i,c)}<span>${n}</span></button>`).join('')}</div>`;
+
+/* ---------- app shell: version, back button ---------- */
+const CA=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;let APPV='';
+if(CA&&CA.getInfo)CA.getInfo().then(i=>{APPV=`${i.version} (build ${i.build})`;const v=$('.mver');if(v)v.textContent='v'+APPV}).catch(()=>{});
+function onBack(){const D=$('#dlg');if(D.classList.contains('open')){dlgT=0;if($('#dno').style.display!=='none')$('#dno').click();else $('#dyes').click();return}
+ if(tab){closeSheet();return}if(PAUSED){pauseGame(false);return}
+ if(MENU){ask('Quit Rot & Roll?','Your progress is saved. Your turrets keep earning while you are away.','Quit',()=>{save();CA&&CA.exitApp()});return}
+ openMenu()}
+if(CA)CA.addListener('backButton',onBack);
+const CHANGES=[[27,'Back button works like a real app. Release build. New icons across the menus. Live title screen. This About page.'],[26,'Rebirth now needs a boss wave and 2 specific turrets. Turrets, skills and rebirth cost more.'],[25,'Turret popup stays open. Welcome-back "Double it" fixed.'],[24,'Wave skip fixed: based on how far zombies get.'],[23,'Smoother menu navigation.'],[22,'Snappier menus.'],[21,'Blood Moon, golden zombies, weekly boss, Horde night, Auto Skill, wave skip, welcome-back screen, turret info pages, notifications, tablet layout.'],[20,'Rarity focus.'],[19,'Idle turret animations, wall damage, reactive music. Menu flicker fixed.'],[18,'Big polish pass: smooth animations, camera feel, better deaths, lighting, braziers, roll reveal, upgrade effects.'],[17,'Stars, Prestige, challenges, Void Jammers and Leeches, new relics, Apex skins.'],[16,'Divine, Eternal and Cosmic rarities, 12 new turrets, 6 new mods.'],[15,'Apex barrels all fire.'],['1-14','The original game: Android app, GPU graphics, menus, settings, Apex, Ascension, zombie types, relics, gem shop, quests and achievements.']];
+function aboutHTML(){return`<div class="box" style="text-align:center;padding:18px"><div class="mt" style="font-size:36px">ROT <em>&amp;</em> ROLL<span>ZOMBIE TURRET DEFENSE</span></div><div class="sub" style="margin-top:12px">Version ${APPV||'1.0'}<br>Made by Loki</div></div><div class="box"><h3>What's new</h3>${CHANGES.map(([b,t])=>`<div class="cl"><b>Build ${b}</b><div class="sub">${t}</div></div>`).join('')}</div>`}
+
 /* ---------- toasts / dialogs ---------- */
-function toast(s){const d=document.createElement('div');d.className='t';d.textContent=s;const box=$('#toast');box.appendChild(d);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2650)}
-let dlgCb=null;let dlgT=0,dlgNo=null;const dlgFresh=()=>performance.now()-dlgT<350;function ask(title,text,yes,cb){dlgT=performance.now();$('#dno').textContent='Cancel';$('#dtitle').textContent=title;$('#dtext').innerHTML=text;$('#dyes').textContent=yes;$('#dno').style.display='';dlgCb=cb;$('#dlg').classList.add('open')}
+function toast(s){if(MENU)return;const d=document.createElement('div');d.className='t';d.textContent=s;const box=$('#toast');box.appendChild(d);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2650)}
+let dlgCb=null;const dlgFresh=()=>performance.now()-dlgT<350;function ask(title,text,yes,cb){dlgT=performance.now();$('#dno').textContent='Cancel';$('#dtitle').textContent=title;$('#dtext').innerHTML=text;$('#dyes').textContent=yes;$('#dno').style.display='';dlgCb=cb;$('#dlg').classList.add('open')}
 function info(title,text){ask(title,text,'Nice!',null);$('#dno').style.display='none'}
 $('#dyes').onclick=()=>{if(dlgFresh())return;$('#dlg').classList.remove('open');if(dlgCb)dlgCb()};
 // a soft tick on every button press
@@ -1102,7 +1163,7 @@ function skillTree(){const br=[['d',40],['l',120],['m',200],['f',280]];let s=`<s
   ms.forEach((m,j)=>{const y=150-j*32,on=lv>=m;if(j)s+=`<line x1="${x}" y1="${y+32-11}" x2="${x}" y2="${y+11}" stroke="${on?col:'#3a332b'}" stroke-width="4"/>`;const ni=m/10-1,ch=m>=10&&S.node[k]?S.node[k][ni]:null,pend=on&&m>=10&&!ch;s+=`<circle cx="${x}" cy="${y}" r="11" fill="${on?col:'#14120f'}" stroke="${pend?'#ffb81c':on?'#fff':'#3a332b'}" stroke-width="${pend?3:2}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-family="Black Ops One" font-size="10" fill="${on?'#0b0f16':'#8f9bb0'}">${ch?ch.toUpperCase():pend?'?':m}</text>`})
   s+=`<text x="${x}" y="${150-4*32-17}" text-anchor="middle" font-family="Black Ops One" font-size="11" fill="${col}">${SK[k].n} ${lv}</text>`}
  return s+'</svg>'}
-function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h='';h=renderExtras(h);h=renderProgress(h);if(tab==='apex')h+=skinsHTML();if(tab==='chal'){$('#stitle').textContent='Challenges';h+=chalHTML()}if(tab==='gems')h+=`<div class="box"><div class="line"><div><h3>Apex skins</h3><div class="sub">Gilded, Neon Grid and Magma Forge are sold here. Others are earned.</div></div><button class="btn" data-act="apex">View</button></div></div>`;
+function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h='';h=renderExtras(h);h=renderProgress(h);if(tab==='apex')h+=skinsHTML();if(tab==='chal'){$('#stitle').textContent='Challenges';h+=chalHTML()}if(tab==='about'){$('#stitle').textContent='About';h+=aboutHTML()}if(tab==='gems')h+=`<div class="box"><div class="line"><div><h3>Apex skins</h3><div class="sub">Gilded, Neon Grid and Magma Forge are sold here. Others are earned.</div></div><button class="btn" data-act="apex">View</button></div></div>`;
  if(tab==='skills'){$('#stitle').textContent='Skill tree';h+=`<div class="box" style="padding:8px">${skillTree()}<div class="sub" style="text-align:center">Skills are permanent. Every 10 levels you pick a perk (A or B) for that branch.</div></div>`;
    if(S.g.ask){const B=Object.assign({d:1,l:1,m:1,f:1},S.askB);h+=`<div class="box"><h3>Auto skill ${S.autoSk?'<span style="color:#b5f05a">ON</span>':'OFF'}</h3><div class="sub">Buys the cheapest skill among the branches you pick, using at most the share of your money you choose per buy.</div><div class="tags" style="gap:6px">${['d','l','m','f'].map(k=>`<button class="tog ${B[k]?'on':''}" data-act="askb" data-k="${k}">${SK[k].n}</button>`).join('')}</div><select class="sel" data-act="askcap">${[[.1,'Up to 10% of money'],[.3,'Up to 30% of money'],[.6,'Up to 60% of money'],[1,'Spend it all']].map(([v,n])=>`<option value="${v}" ${(S.askCap||.3)===v?'selected':''}>${n}</option>`).join('')}</select></div>`}
   for(const[b,i]of pendingNodes()){const pr=NODES[b][i%2];h+=`<div class="box" style="border-color:#ffb81c"><h3 style="color:${SK[b].c}">${SK[b].n} Lv ${(i+1)*10}: choose a perk</h3><div class="line" style="align-items:stretch"><button class="btn go" style="flex:1;white-space:normal;height:auto;min-height:52px;padding:8px" data-act="node" data-k="${b}" data-i="${i}" data-o="a">A · ${pr[0]}</button><button class="btn go" style="flex:1;white-space:normal;height:auto;min-height:52px;padding:8px" data-act="node" data-k="${b}" data-i="${i}" data-o="b">B · ${pr[1]}</button></div></div>`}
@@ -1139,10 +1200,10 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
   h+=it('Auto Skill','Spends money on skills for you. Choose branches and a spending limit in the Skills tab.',120,'g_ask',S.g.ask);
    h+=it('Auto Ascend','Ascends automatically once it would give the shards you choose.',1500,'g_aa',S.g.aa,S.g.aa?`<select class="sel" data-act="aamin">${[5,10,25,50,100,250].map(v=>`<option value="${v}" ${(S.aaMin||10)===v?'selected':''}>At ${v}+ shards</option>`).join('')}</select>`:'');
   h+=S.g.off<5?it(`Offline earnings Lv ${S.g.off+1}`,`Earn more while away (now ${25+S.g.off*12}% of what your current wave pays, up to 8 hours). Waves never go up while away.`,3*(S.g.off+1),'g_off',0):it('Offline earnings','Maxed out.',0,'',1)}
- if(tab==='more'){$('#stitle').textContent='More';h+=`<div class="box"><h3>Stats</h3><div class="stats"><span>World</span><span>${Wd().n}</span><span>Wave</span><span>${S.wave}</span><span>Total luck</span><span>x${luck().toFixed(2)}</span><span>Money multiplier</span><span>x${fmt(moneyMult())}</span><span>Damage multiplier</span><span>x${dmgMult().toFixed(2)}</span><span>Team DPS</span><span>${fmt(S.slots.reduce((a,it)=>a+(it?dps(it):0),0))}</span><span>Zombies killed</span><span>${fmt(S.kills)}</span><span>Income</span><span>${fmt(S.rate)}/s</span></div></div>
+ if(tab==='more'){$('#stitle').textContent='More';h+=tilesHTML()+`<div class="box"><h3>Stats</h3><div class="stats"><span>World</span><span>${Wd().n}</span><span>Wave</span><span>${S.wave}</span><span>Total luck</span><span>x${luck().toFixed(2)}</span><span>Money multiplier</span><span>x${fmt(moneyMult())}</span><span>Damage multiplier</span><span>x${dmgMult().toFixed(2)}</span><span>Team DPS</span><span>${fmt(S.slots.reduce((a,it)=>a+(it?dps(it):0),0))}</span><span>Zombies killed</span><span>${fmt(S.kills)}</span><span>Income</span><span>${fmt(S.rate)}/s</span></div></div>
   <div class="box"><h3>Roll odds now</h3><div class="stats">${(()=>{const L=luck(),ws=rollWeights(L),t=ws.reduce((a,b)=>a+b);return RAR.map((r,i)=>i===4&&!(S.asc>=1)?'':`<span style="color:${r.c}">${r.n}</span><span>${(ws[i]/t*100).toFixed(ws[i]/t<.01?2:1)}%</span>`).join('')})()}<span>Any mod</span><span>${unlockedMods().length?(Math.min(.5,.07*Math.pow(luck(),.6))*100).toFixed(1)+'%':'Rebirth to unlock'}</span></div></div>
   <div class="box"><h3>Turret index</h3><div class="stats">${TUR.map(T=>`<span style="color:${RAR[T.r].c}">${T.n}</span><span class="sub">${kname(T)}</span>`).join('')}</div></div>
-  <div class="sub">Settings, your account and save backups are under the gear button at the top.</div><div class="line" style="flex-wrap:wrap"><button class="btn go" data-act="chal">Challenges</button><button class="btn" data-act="quests">Daily quests</button><button class="btn" data-act="ach">Achievements</button><button class="btn" data-act="dex">Collection</button><button class="btn" data-act="apex">Apex</button><button class="btn" data-act="relics">Relics</button><button class="btn" data-act="asc">Ascension</button><button class="btn" data-act="tut">Replay tutorial</button><button class="btn" data-act="menu">Main menu</button></div>`}
+  <div class="sub">Settings, your account and save backups are under the gear button at the top.</div>`}
  if(tab==='settings'){$('#stitle').textContent='Settings';const T=S.set,tg=(k,l,d)=>`<div class="line"><div><b>${l}</b>${d?`<div class="sub">${d}</div>`:''}</div><button class="tog ${T[k]?'on':''}" data-act="tg" data-k="${k}">${T[k]?'ON':'OFF'}</button></div>`,
   sl=(k,l)=>`<label class="line"><div><b>${l}</b></div><span class="sub" id="v_${k}" style="width:44px;text-align:right">${T[k]}%</span></label><input type="range" min="0" max="100" step="5" value="${T[k]}" data-act="vol" data-k="${k}">`,
   se=(k,l,opts,d)=>`<div class="line"><div><b>${l}</b>${d?`<div class="sub">${d}</div>`:''}</div><select class="sel" data-act="set" data-k="${k}">${opts.map(([v,n])=>`<option value="${v}" ${String(T[k])===String(v)?'selected':''}>${n}</option>`).join('')}</select></div>`,
@@ -1159,7 +1220,7 @@ function render(){if(!tab)return;const b=$('#sbody');const st=b.scrollTop;let h=
    ${tg('vib','Vibration on rolls','Stronger and longer for rarer turrets and mods.')}${tg('dmg','Damage numbers')}${tg('cash','Money pop-ups')}${tg('badges','Turret level badges')}${tg('shake','Screen shake')}${tg('gore','Blood and gore','Off removes blood, gore and corpses.')}</div>
   <div class="box"><h3>Backup save</h3><div class="sub">Copy this code somewhere safe, or paste one to load it.</div><textarea id="savebox" spellcheck="false"></textarea><div class="line"><button class="btn" data-act="exp">Show code</button><button class="btn" data-act="copy">Copy</button><button class="btn go" data-act="imp">Load</button></div></div>
   <div class="box"><h3>Reset</h3><button class="btn warn" data-act="wipe">Delete all progress</button></div>`}
- if(h===lastSheet&&tab===lastTab)return;lastSheet=h;lastTab=tab;const keep=tab==='settings'?$('#savebox')?.value:null;b.innerHTML=h;if(tab==='dex'||tab==='apex'){const tb=tab;requestAnimationFrame(()=>{if(tab!==tb)return;if(tb==='dex')drawDex();else drawSkins()})}if(keep!=null&&$('#savebox'))$('#savebox').value=keep;b.scrollTop=st}
+ if(h===lastSheet&&tab===lastTab)return;lastSheet=h;lastTab=tab;const keep=tab==='settings'?$('#savebox')?.value:null;b.innerHTML=h;decorate(b);if(tab==='dex'||tab==='apex'){const tb=tab;requestAnimationFrame(()=>{if(tab!==tb)return;if(tb==='dex')drawDex();else drawSkins()})}if(keep!=null&&$('#savebox'))$('#savebox').value=keep;b.scrollTop=st}
 let lastSheet='',lastTab=null;
 $('#sbody').addEventListener('change',e=>{if(e.target.dataset.act==='aamin'){S.aaMin=+e.target.value;save()}if(e.target.dataset.act==='askcap'){S.askCap=+e.target.value;save()}if(e.target.dataset.act==='fmin'){S.fMin=+e.target.value;save()}const d=e.target.dataset;if(d.act==='set'){const v=e.target.value;if(d.k==='gfxq'){S.gfx=v;if(v!=='auto')Q=+v;resize()}else if(d.k==='res'){S.set.res=v;resize()}else if(d.k==='cap')S.set.cap=+v;else S.set[d.k]=v;save();render()}
  if(d.act==='name'){S.name=e.target.value.trim().slice(0,16)||'Survivor';save()}});
@@ -1175,7 +1236,7 @@ $('#sbody').addEventListener('click',e=>{const t=e.target.closest('[data-act]');
  if(a==='g_ar')gem(3,()=>S.g.ar=1);if(a==='g_ab')gem(5,()=>S.g.ab=1);if(a==='g_flt')gem(4,()=>S.g.flt=1);if(a==='g_arb')gem(15,()=>S.g.arb=1);
  if(a==='g_spd')gem(SPEEDC[S.g.spd+1],()=>{S.g.spd++;S.spdSel=S.g.spd});if(a==='g_lp')gem(2,()=>S.lp+=300);if(a==='g_mp')gem(2,()=>S.mp+=300);if(a==='g_guar')gem(4,()=>S.guar++);if(a==='g_off')gem(3*(S.g.off+1),()=>S.g.off++);
  if(a==='menu'){openMenu();return}
- if(['quests','ach','dex','apex','relics','asc','chal'].includes(a)){openTab(a);return}
+ if(['quests','ach','dex','apex','relics','asc','chal','about'].includes(a)){openTab(a);return}
  if(a==='ascend'){ask('Ascend?',`You get +${shardsFor()} shards and x2 damage and money forever. Rebirths, worlds, turrets, money and your Apex reset.`,'Ascend',doAscend);return}
  if(a==='perk'){const P2=PERKS.find(q=>q[0]===k),c=perkCost(P2);if((S.shards||0)>=c){S.shards-=c;S.perk[k]=(S.perk[k]||0)+1;sfx('buy')}}
  if(a==='forge'){forge(+k);render();return}
@@ -1324,7 +1385,7 @@ function afterLoad(){if(S.runBest==null)S.runBest=Math.max(0,(S.wave||1)-1);S.st
  S.spdSel=Math.min(S.spdSel,S.g.spd);G.z=[];G.p=[];G.fx=[];G.corpses=[];G.state='break';G.bt=1;rebuild();renderAutos();renderCard();hud()}
 let last=performance.now(),hudT=0,saveT=0,sheetT=0,prevAnim=0,fpsN=0,fpsT=0,FPS=60,slowWin=0,miniF=0;
 function applyQ(){Q=S.gfx==='auto'||S.gfx==null?Q:+S.gfx;resize()}
-function frame(now){if(MENU||PAUSED){last=now;requestAnimationFrame(frame);return}const real=(now-last)/1000;if(S.set.cap<60&&real<1/S.set.cap-.006){requestAnimationFrame(frame);return}
+function frame(now){if(PAUSED){last=now;requestAnimationFrame(frame);return}const real=(now-last)/1000;if(S.set.cap<60&&real<1/S.set.cap-.006){requestAnimationFrame(frame);return}
  const rdt=Math.min(.05,real);last=now;const t=(now-T0)/1000;if(!document.hidden)S.time+=rdt;
  if(S.lp>0)S.lp=Math.max(0,S.lp-rdt);if(S.lp3>0)S.lp3=Math.max(0,S.lp3-rdt);if(S.mp3>0)S.mp3=Math.max(0,S.mp3-rdt);if(S.mp>0)S.mp=Math.max(0,S.mp-rdt);if(G.shake>0)G.shake=Math.max(0,G.shake-rdt);
  if(G.zoom>0)G.zoom=Math.max(0,G.zoom-G.zoom*rdt*6-rdt*.01);const ts=G.slow>0?.3:1;if(G.slow>0)G.slow-=rdt;numTick(rdt);if(revealT>0)revealT-=rdt;
@@ -1332,7 +1393,7 @@ function frame(now){if(MENU||PAUSED){last=now;requestAnimationFrame(frame);retur
  if(rollAnim>0){rollAnim-=rdt;if(rollAnim<=0){rollAnim=0;renderCard();revealFX()}}
  autoStep(rdt*sp);if(S.g.arb&&S.autoRb&&canRebirth())doRebirth();
  earnT+=rdt;if(earnT>=20){S.rate=S.rate?S.rate*.5+earnWin/earnT*.5:earnWin/earnT;earnWin=0;earnT=0}
- extrasTick(rdt);dpsT+=rdt;if(dpsT>=1){for(let i=0;i<NS+4;i++){DPSV[i]=DPSV[i]*.5+DMG[i]/dpsT*.5;DMG[i]=0}dpsT=0}
+ if(!MENU)extrasTick(rdt);dpsT+=rdt;if(dpsT>=1){for(let i=0;i<NS+4;i++){DPSV[i]=DPSV[i]*.5+DMG[i]/dpsT*.5;DMG[i]=0}dpsT=0}
  musTick();const uiOpen=!!tab||DLG.classList.contains('open');uiF++;if(!uiOpen||uiF%3===0){gpuDraw(t,uiOpen?rdt*3:rdt);if(!uiOpen&&(Q>=2||(miniF++&1)))drawMini(t);overlayDOM(rdt)}
  if(fpsWarm>0)fpsWarm-=real;fpsN++;fpsT+=real;if(fpsT>=2){FPS=fpsN/fpsT;fpsN=0;fpsT=0;if((S.gfx==='auto'||S.gfx==null)&&S.set.cap>=60&&!document.hidden&&fpsWarm<=0){if(FPS<42&&(Q>0||(S.set.res==='auto'&&AR>1))){if(++slowWin>=2){slowWin=0;if(Q>0){Q--}else{AR=AR>2?2:AR>1.5?1.5:1}resize()}}else slowWin=0}}
  hudT-=rdt;if(hudT<=0){hudT=.12;hud();setDrone(isBoss()&&G.state==='run'&&!S.mute&&!document.hidden);if(S.roll&&!rollAnim&&!replaceMode){const ok=[S.roll,...(S.extra||[])].some(x=>S.money>=x.price);if($('#buyb').disabled===ok)renderCard()}}
@@ -1344,14 +1405,15 @@ function emblem(c,t){const g=c.getContext('2d'),S2=c.width/120;g.setTransform(1,
  g.strokeStyle='rgba(224,36,44,.85)';g.lineWidth=2.4;g.beginPath();g.arc(0,0,44,0,7);g.stroke();for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;g.beginPath();g.moveTo(Math.cos(a)*36,Math.sin(a)*36);g.lineTo(Math.cos(a)*52,Math.sin(a)*52);g.stroke()}
  g.scale(1.45,1.45);drawTurret(g,{t:8,m:4,lv:0},-Math.PI/4+Math.sin(t*.8)*.5,t,false,0,t*14)}
 let menuRaf=0;function menuLoop(now){if(!MENU)return;emblem($('#mic'),now/1000);menuRaf=requestAnimationFrame(menuLoop)}
-function openMenu(){MENU=true;save();setDrone(false);closeSheet();const nm=(S.name||'Survivor').replace(/[&<>"]/g,'');
+document.querySelectorAll('.mb2,.big').forEach(b=>{b.innerHTML=b.innerHTML.replace(/__IC_(\w+)__/,(m,n)=>ic(n))});
+function openMenu(){MENU=true;document.body.classList.add('inmenu');save();setDrone(false);closeSheet();const nm=(S.name||'Survivor').replace(/[&<>"]/g,'');
  $('#mwel').innerHTML=S.kills>0?`Welcome back, <b>${nm}</b>`:`Welcome, <b>${nm}</b>`;
  $('#msum').textContent=S.kills>0?`${Wd().n} · Wave ${S.wave} · ${S.rb} rebirth${S.rb===1?'':'s'} · ${fmt(S.gems)} gems`:'Hold the line. Roll turrets. Survive.';
  $('#mplay').textContent=S.kills>0?'Continue':'Play';$('#menu').classList.add('on');cancelAnimationFrame(menuRaf);menuRaf=requestAnimationFrame(menuLoop)}
-function closeMenu(){audio();MENU=false;if(!S.notifAsk&&S.set.notif){S.notifAsk=1;setTimeout(notifPerm,2500)}$('#menu').classList.remove('on');cancelAnimationFrame(menuRaf);last=performance.now();
+function closeMenu(){audio();MENU=false;document.body.classList.remove('inmenu');if(!S.notifAsk&&S.set.notif){S.notifAsk=1;setTimeout(notifPerm,2500)}$('#menu').classList.remove('on');cancelAnimationFrame(menuRaf);last=performance.now();
  checkQuests();const dl=checkDaily(),pw=pendingWelcome;pendingWelcome=null;const seq=[pw,dl].filter(Boolean);const nx=()=>{const f=seq.shift();if(f){f();const o=$('#dyes').onclick;const done=()=>{$('#dyes').onclick=o;dlgNo=null;setTimeout(nx,200)};dlgNo=done;$('#dyes').onclick=()=>{if(dlgFresh())return;$('#dlg').classList.remove('open');const cb=dlgCb;dlgCb=null;if(cb)cb();done()}}};setTimeout(nx,250);if(!S.tut&&tutStep<0)setTimeout(startTut,600)}
 $('#mplay').onclick=closeMenu;
-document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{audio();const m=b.dataset.m;if(m==='settings'||m==='stats')openTab('settings');if(['quests','ach','dex'].includes(m))openTab(m);
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{audio();const m=b.dataset.m;if(m==='settings'||m==='stats')openTab('settings');if(['quests','ach','dex','about'].includes(m))openTab(m);
  if(m==='how')info('How to play','<div style="text-align:left;display:grid;gap:6px;margin-top:6px">• <b>Roll</b> is free. <b>Buy</b> the turret if you can afford it.<br>• Each turret has its own slot, rarest at the top.<br>• Buying a turret you own adds a <b>duplicate</b>: collect them to level it up to 10.<br>• Kill zombies for money. Bosses every 10 waves drop <b>gems</b>.<br>• Spend money on <b>Skills</b> (damage, luck, money). They are permanent.<br>• <b>Rebirth</b> to reset your run for more luck, more money and rarer mods.<br>• Reach new <b>worlds</b> with rebirths and high waves.<br>• Waves only go up while you play; you earn some money while away.</div>')});
 const BOOT=performance.now();
 (async()=>{emblem($('#lic'),0);$('#lprog').style.width='10%';$('#ltxt').textContent='Starting graphics engine…';await new Promise(r=>requestAnimationFrame(()=>r()));try{await initGPU()}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:grid;place-items:center;background:#000;color:#fff;padding:20px;text-align:center;z-index:99">This phone could not start the graphics engine (WebGL).<br>'+String(e&&e.message||e)+'</div>');return}
