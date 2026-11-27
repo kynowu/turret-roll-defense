@@ -79,6 +79,7 @@ button:focus-visible{outline:3px solid var(--good);outline-offset:2px}
 #buyb[disabled]{background:#24201c;color:#5e564c;box-shadow:none;text-shadow:none;border-color:#2e2924}
 #autos{display:flex;gap:6px;padding:0 10px 6px;background:#100e0c;flex-wrap:wrap}
 #autos:empty{display:none}
+.fcb.on{border-color:#b5f05a;background:#1e2a0e}
 .tog{font-size:14px;padding:5px 10px;border-radius:4px;background:#1d1a17;color:var(--dim);min-height:32px;border:1px solid #2e2924}
 .tog.on{background:#1e2a0e;color:#b5f05a;border-color:#3f6b10}
 #tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#0b0a09;border-top:1px solid #2a221a;padding-bottom:env(safe-area-inset-bottom)}
@@ -913,7 +914,18 @@ function rollItem(ws,L){let it,n=0;do{it=rollOnce(ws,L);const d=dupeInfo(it);if(
 function rollWeights(L){const ws=RAR.map((r,i)=>!rarOK(i)?0:rw(i,L)*(i>=3?1+.25*nc('l',1,'a'):i===2?1+.25*nc('l',1,'b'):1));
  const tot=ws.reduce((a,b)=>a+b,0),p=ws.map(w=>w/tot),fix=new Set();for(const i of[0,1])if(p[i]<.15){p[i]=.15;fix.add(i)}if(!fix.size)return p;
  const rest=1-[...fix].reduce((a,i)=>a+p[i],0),oth=p.reduce((a,v,i)=>fix.has(i)?a:a+v,0);return p.map((v,i)=>fix.has(i)?v:oth?v/oth*rest:0)}
-function doRoll(auto){if(G.ch){if(!auto)toast('No rolling during a challenge');return}autoRolled=!!auto;S.st.rolls++;if(!auto){vibStart();tutEv(0)}const L=luck();let ws=rollWeights(L);if(S.guar>0){S.guar--;ws=RAR.map((r,i)=>i>=2&&rarOK(i)?rw(i,L):0)}
+// Rarity focus: most rolls land on the chosen rarity; luck sets how often you jump one tier higher; 10% go to lower tiers
+function focusWeights(f,L){const up=f+1<RAR.length&&rarOK(f+1)?Math.min(.35,.03+.035*Math.log2(Math.max(1,L))):0,lo=f>0?.1:0,p=RAR.map(()=>0);p[f]=1-up-lo;if(up)p[f+1]=up;for(let i=0;i<f;i++)p[i]=lo/f;return p}
+const focusOn=()=>S.focus!=null&&S.focus>=0&&rarOK(S.focus);
+function focusPicker(){const L=luck(),pc=v=>v>=.995?'100%':v<.001?'<0.1%':(v*100).toFixed(v<.1?1:0)+'%';
+ const row=(f,name,col,desc)=>`<button class="btn fcb ${(focusOn()?S.focus:-1)===f?'on':''}" data-fc="${f}" style="width:100%;margin-top:6px;justify-content:space-between;text-align:left;height:auto;padding:8px 10px;display:flex;gap:8px"><b style="color:${col}">${name}</b><span class="sub" style="font-size:13px;text-align:right">${desc}</span></button>`;
+ const any=rollWeights(L);let h=`<div class="sub">Choose which rarity to roll for. Your luck decides how often you jump one tier higher.</div>`;
+ h+=row(-1,'Any','#ece4d6',RAR.map((r,i)=>any[i]>=.005?`${r.n} ${pc(any[i])}`:'').filter(Boolean).slice(-3).join(' · '));
+ for(let f=0;f<RAR.length;f++){if(!rarOK(f))continue;const w=focusWeights(f,L),maxed=TUR.filter(T=>T.r===f).every((T,k)=>{const o=S.slots[slotOf(f*4+k)];return o&&o.t===f*4+k&&(o.lv||0)>=MAXLV});
+  h+=row(f,RAR[f].n,RAR[f].c,maxed?'All maxed':`${pc(w[f])}${w[f+1]?` · ${RAR[f+1].n} ${pc(w[f+1])}`:''}${f?` · lower ${pc(.1)}`:''}`)}
+ info('Rarity focus',h);$('#dyes').textContent='Close'}
+$('#dtext').addEventListener('click',e=>{const b=e.target.closest('[data-fc]');if(!b)return;S.focus=+b.dataset.fc;save();renderAutos();$('#dlg').classList.remove('open');toast(S.focus>=0?`Rolling for ${RAR[S.focus].n} turrets`:'Rolling with normal luck')});
+function doRoll(auto){if(G.ch){if(!auto)toast('No rolling during a challenge');return}autoRolled=!!auto;S.st.rolls++;if(!auto){vibStart();tutEv(0)}const L=luck();let ws=focusOn()?focusWeights(S.focus,L):rollWeights(L);if(S.guar>0){S.guar--;ws=RAR.map((r,i)=>i>=2&&rarOK(i)?rw(i,L):0)}
  const list=[];for(let k=0;k<rollCount();k++)list.push(rollItem(ws,L));list.sort((a,b)=>TUR[b.t].r-TUR[a.t].r||b.m-a.m);
  S.roll=list[0];S.extra=list.slice(1);rollAnim=auto?.2:.75;renderCard()}
 // buy every rolled turret you can afford (best first); maxed duplicates are skipped
@@ -1121,8 +1133,8 @@ function resetRun(w){S.money=50;S.wave=1;S.world=w;S.slots=startSlots();S.extra=
 function doRebirth(){if(G.ch)return;const c=rbCost();if(S.money<c)return;S.rb++;resetRun(S.world);const m=MODS.find(m=>m.rb===S.rb);toast(`Rebirth ${S.rb}! +25% money, +10% luck`);if(m)toast(`${m.n} mods can now appear!`);checkUnlock()}
 
 /* ---------- autos / hud ---------- */
-function renderAutos(){let h='';if(S.g.ar)h+=`<button class="tog ${S.autoRoll?'on':''}" data-a="autoRoll">Auto roll ${S.autoRoll?'ON':'OFF'}</button>`;if(S.g.ab)h+=`<button class="tog ${S.autoBuy?'on':''}" data-a="autoBuy">Auto buy ${S.autoBuy?'ON':'OFF'}</button>`;if(S.g.arb)h+=`<button class="tog ${S.autoRb?'on':''}" data-a="autoRb">Auto rebirth ${S.autoRb?'ON':'OFF'}</button>`;if(S.g.af)h+=`<button class="tog ${S.autoForge!==0?'on':''}" data-a="autoForge">Auto forge ${S.autoForge!==0?'ON':'OFF'}</button>`;if(S.g.aa)h+=`<button class="tog ${S.autoAsc?'on':''}" data-a="autoAsc">Auto ascend ${S.autoAsc?'ON':'OFF'}</button>`;$('#autos').innerHTML=h}
-$('#autos').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const k=b.dataset.a;S[k]=k==='autoForge'?(S[k]!==0?0:1):S[k]?0:1;renderAutos();save()};
+function renderAutos(){let h=`<button class="tog ${focusOn()?'on':''}" data-a="focus">Focus: <b style="color:${focusOn()?RAR[S.focus].c:'inherit'}">${focusOn()?RAR[S.focus].n:'Any'}</b></button>`;if(S.g.ar)h+=`<button class="tog ${S.autoRoll?'on':''}" data-a="autoRoll">Auto roll ${S.autoRoll?'ON':'OFF'}</button>`;if(S.g.ab)h+=`<button class="tog ${S.autoBuy?'on':''}" data-a="autoBuy">Auto buy ${S.autoBuy?'ON':'OFF'}</button>`;if(S.g.arb)h+=`<button class="tog ${S.autoRb?'on':''}" data-a="autoRb">Auto rebirth ${S.autoRb?'ON':'OFF'}</button>`;if(S.g.af)h+=`<button class="tog ${S.autoForge!==0?'on':''}" data-a="autoForge">Auto forge ${S.autoForge!==0?'ON':'OFF'}</button>`;if(S.g.aa)h+=`<button class="tog ${S.autoAsc?'on':''}" data-a="autoAsc">Auto ascend ${S.autoAsc?'ON':'OFF'}</button>`;$('#autos').innerHTML=h}
+$('#autos').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const k=b.dataset.a;if(k==='focus'){focusPicker();return}S[k]=k==='autoForge'?(S[k]!==0?0:1):S[k]?0:1;renderAutos();save()};
 const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
 function sndIcon(){$('#snd').innerHTML=S.mute?SND_OFF:SND_ON;$('#snd').style.color=S.mute?'#6e655a':'#ece4d6'}
 $('#gear').onclick=()=>openTab('settings');
